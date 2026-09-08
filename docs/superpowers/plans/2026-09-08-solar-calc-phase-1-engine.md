@@ -2689,6 +2689,16 @@ describe('orchestration wiring', () => {
     const expectedAmps = (design.array.installedPvKw.value * 1000) / busV * 1.25
     expect(design.controller?.amps.value).toBeCloseTo(expectedAmps, 1)
   })
+
+  // Proves validateDesign is wired into the GRID-TIED return path. Every other
+  // warning test uses battery-side checks, which are null-guarded off for
+  // grid-tied — so dropping the call from that branch alone would pass them all.
+  // estimated-peak is the only warning a grid-tied design can raise.
+  it('runs validation on the grid-tied path too', () => {
+    const design = sizeSystem({ ...withBill(200), systemType: 'grid-tied' })
+    expect(design.load.isPeakEstimated).toBe(true)
+    expect(design.warnings.map((w) => w.id)).toContain('estimated-peak')
+  })
 })
 
 describe('degenerate input', () => {
