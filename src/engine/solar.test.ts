@@ -75,4 +75,25 @@ describe('sizeArray', () => {
     const spec = sizeArray(10, psh, DERATE_DEFAULTS, panel)
     expect(spec.derateTotal.explain.assumptions.join(' ')).toMatch(/heat|temperature/i)
   })
+
+  it('limits numerals to 2 decimals in substituted explanations even with awkward panel specs', () => {
+    const awkwardPanel: PanelSpec = {
+      id: 'test-555', name: 'Test 555 W', watts: 555, areaM2: 2.583,
+      vocVolts: 50, vocTempCoefficientPctPerC: -0.3,
+    }
+    const derate = { soiling: 1, temperature: 1, wiring: 1, conversion: 1 }
+    const psh = resolveDesignPsh('off-grid', district)
+    const spec = sizeArray(10, psh, derate, awkwardPanel)
+
+    // Extract all numerals from substituted explanations
+    const panelCountSubst = spec.panelCount.explain.substituted
+    const installedPvSubst = spec.installedPvKw.explain.substituted
+    const roofAreaSubst = spec.roofAreaM2.explain.substituted
+
+    // Check that no numeral has more than 2 decimal places
+    const decimalRegex = /\d+\.\d{3,}/
+    expect(panelCountSubst).not.toMatch(decimalRegex)
+    expect(installedPvSubst).not.toMatch(decimalRegex)
+    expect(roofAreaSubst).not.toMatch(decimalRegex)
+  })
 })

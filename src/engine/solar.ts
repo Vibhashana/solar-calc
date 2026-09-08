@@ -86,19 +86,19 @@ export function sizeArray(
     panelCount: sized(panelCount, 'panels', {
       plain: `That is ${panelCount} panels of ${panel.watts} W each. We always round up, because a partial panel does not exist.`,
       formula: 'panelCount = ceil(requiredPvKw / panelKw)',
-      substituted: `ceil(${round2(requiredPvKw)} / ${panelKw}) = ${panelCount}`,
+      substituted: `ceil(${round2(requiredPvKw)} / ${round2(panelKw)}) = ${panelCount}`,
       assumptions: [`Using ${panel.name}.`],
     }),
     installedPvKw: sized(installedPvKw, 'kW', {
       plain: `${panelCount} panels comes to ${round2(installedPvKw)} kW installed.`,
       formula: 'installedPvKw = panelCount x panelKw',
-      substituted: `${panelCount} x ${panelKw} = ${round2(installedPvKw)} kW`,
+      substituted: `${panelCount} x ${round2(panelKw)} = ${round2(installedPvKw)} kW`,
       assumptions: [],
     }),
     roofAreaM2: sized(roofAreaM2, 'm2', {
       plain: `You need roughly ${round2(roofAreaM2)} square metres of unshaded roof — check you have that much before buying anything.`,
       formula: 'roofAreaM2 = panelCount x panelAreaM2',
-      substituted: `${panelCount} x ${panel.areaM2} = ${round2(roofAreaM2)} m2`,
+      substituted: `${panelCount} x ${round2(panel.areaM2)} = ${round2(roofAreaM2)} m2`,
       assumptions: ['Panels laid flat against the roof with no walking space between rows.'],
     }),
   }
