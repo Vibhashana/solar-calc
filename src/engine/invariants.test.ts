@@ -77,11 +77,14 @@ describe('orchestration wiring', () => {
   // transposed argument or a wrong-function call in the pipeline would compile
   // and pass. These pin the values that only come out right when each module
   // is fed the correct input.
-  it('derives bus voltage from the inverter size, not the raw load peak', () => {
+  it('derives bus voltage from the inverter size and the array size, not the raw load peak', () => {
     const design = sizeSystem(withBill(200))
     expect(design.inverter.continuousW.value).toBeGreaterThan(0)
-    const expected =
+    const inverterVoltage =
       design.inverter.continuousW.value < 1000 ? 12 : design.inverter.continuousW.value <= 3000 ? 24 : 48
+    const arrayVoltage =
+      design.array.installedPvKw.value <= 0.8 ? 12 : design.array.installedPvKw.value <= 2 ? 24 : 48
+    const expected = Math.max(inverterVoltage, arrayVoltage)
     expect(design.busVoltage?.value).toBe(expected)
   })
 

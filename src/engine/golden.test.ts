@@ -46,18 +46,12 @@ describe('golden case: typical Sri Lankan hybrid home', () => {
   })
 
   it('recommends a 48 V system', () => {
-    // KNOWN FAILING as of Task 15 investigation — left unmodified per the
-    // task-15 brief's instruction not to adjust a fixture to force a pass.
-    // A 250 kWh/month bill, at this district's PSH, is unaffected by PSH
-    // data: continuousPeakW is purely load-side (dailyKwh -> meanW x
-    // billPeakToMeanRatio(3.5) x continuousHeadroom(1.25)), giving ~1497 W,
-    // which rounds up to the 1500 W market size. voltage.ts's own threshold
-    // table (<=3000 W -> 24 V, established and tested in an earlier task)
-    // therefore selects 24 V, not 48 V, deterministically and regardless of
-    // any live dataset. This is not PSH drift. Reported in task-15-report.md
-    // as a discrepancy between this golden fixture's assumption and the
-    // shipped bill-based load/voltage formulas — needs a human call on
-    // whether the fixture's assumption or the formula constants are off.
+    // Was failing before the Task 15b fix: the 1500 W inverter alone only
+    // implies 24 V, but this design's ~2.2 kW array crosses the array's own
+    // 48 V threshold (>2 kW, see voltage.ts / defaults.ts
+    // BUS_VOLTAGE_ARRAY_THRESHOLDS_KW). The bus voltage is the higher of the
+    // inverter-implied and array-implied tiers, so this design correctly
+    // lands on 48 V once selectBusVoltage accounts for the array.
     expect(design.busVoltage?.value).toBe(48)
   })
 

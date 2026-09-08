@@ -55,11 +55,17 @@ describe('validateDesign', () => {
   })
 
   it('flags a battery whose voltage cannot build the system voltage', () => {
-    // Default inputs at a modest bill give a 24 V bus, while the default module is
-    // 51.2 V — one in series is 51.2 V, not 24 V. This was a real user-facing defect.
+    // 150 kWh/month off-grid in Colombo keeps both the inverter (1000 W) and the
+    // array (1.65 kW) inside their 24 V tiers, so the system lands on a 24 V bus.
+    // (200 kWh/month, used here before the bus-voltage fix, now correctly resolves
+    // to 48 V because its 2.2 kW array crosses the array's 48 V threshold — and at
+    // 48 V a 51.2 V module is the *correct* pairing, only 6.7% off, so it no longer
+    // demonstrates a mismatch.) Against a genuine 24 V bus, the 51.2 V module is
+    // 113% out — one module in series is already 51.2 V, and no whole number of
+    // them lands within 10% of 24 V. This was a real user-facing defect.
     const inputs: SystemInputs = {
       ...defaultInputs('off-grid', 'colombo'),
-      load: { mode: 'bill', monthlyKwh: 200, nightFraction: 0.6 },
+      load: { mode: 'bill', monthlyKwh: 150, nightFraction: 0.6 },
       batteryModuleId: 'lfp-51v-100ah',
     }
     expect(ids(inputs)).toContain('battery-voltage-mismatch')

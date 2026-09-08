@@ -38,8 +38,8 @@ export function sizeSystem(inputs: SystemInputs): SystemDesign {
   if (!batteryModule) throw new Error(`Unknown battery module: ${inputs.batteryModuleId}`)
 
   const inverter = sizeInverterFromLoad(load)
-  const busVoltage = selectBusVoltage(inverter.continuousW.value)
   const array = sizeArray(load.dailyKwh.value, designPsh, inputs.derate, panel)
+  const busVoltage = selectBusVoltage(inverter.continuousW.value, array.installedPvKw.value)
   const battery = sizeBattery(
     load.nightKwh.value,
     inputs.autonomyDays,

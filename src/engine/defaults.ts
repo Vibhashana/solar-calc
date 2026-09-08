@@ -41,6 +41,8 @@ export const INVERTER_MARKET_SIZES_W = [
 
 export const BUS_VOLTAGE_THRESHOLDS_W = { to12V: 1000, to24V: 3000 } as const
 
+export const BUS_VOLTAGE_ARRAY_THRESHOLDS_KW = { to12V: 0.8, to24V: 2 } as const
+
 export function defaultInputs(systemType: SystemType, districtId: string): SystemInputs {
   return {
     systemType,
