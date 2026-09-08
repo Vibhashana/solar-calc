@@ -23,9 +23,9 @@ export function sizeInverterFromLoad(load: DailyLoadProfile): InverterSpec {
       ],
     }),
     surgeRequiredW: sized(surgeRequiredW, 'W', {
-      plain: `Check the inverter can handle ${round2(surgeRequiredW)} watts for a few seconds. Sellers call this the surge or peak rating, and it is separate from the ${round2(continuousW / 1000)} kW continuous figure.`,
+      plain: `Check the inverter can handle ${round2(surgeRequiredW)} watts for a few seconds. Sellers call this the surge or peak rating, and it is separate from the ${round2(continuousW / 1000)} kW continuous figure. Otherwise a fridge or water pump may refuse to start even though the inverter looks big enough on paper.`,
       formula: 'surgeRequiredW = surgePeakW',
-      substituted: `${round2(surgeRequiredW)} W for at least ${DEFAULTS.inverter.surgeHoldSeconds} seconds`,
+      substituted: `surgeRequiredW = ${round2(surgeRequiredW)} W, held for at least ${DEFAULTS.inverter.surgeHoldSeconds} seconds`,
       assumptions: ['One motor starting at a time while everything else runs.'],
     }),
   }
@@ -45,7 +45,7 @@ export function sizeInverterFromArray(installedPvKw: number): InverterSpec {
     surgeRequiredW: sized(0, 'W', {
       plain: 'A grid-tied inverter does not start your appliances — the grid does — so it has no surge requirement.',
       formula: 'surgeRequiredW = 0 for grid-tied systems',
-      substituted: '0 W',
+      substituted: 'surgeRequiredW = 0 W',
       assumptions: ['The grid supplies starting current for motors.'],
     }),
   }

@@ -59,3 +59,24 @@ describe('sizeInverterFromArray', () => {
     expect(sizeInverterFromArray(5.75).surgeRequiredW.value).toBe(0)
   })
 })
+
+describe('Sized explanation contract', () => {
+  it('every Sized value has plain text and substituted containing =', () => {
+    const load = computeLoadProfile({ mode: 'bill', monthlyKwh: 200, nightFraction: 0.6 }, 0.65)
+    const loadSpec = sizeInverterFromLoad(load)
+    const arraySpec = sizeInverterFromArray(5.75)
+
+    const allSpecs = [
+      loadSpec.continuousW,
+      loadSpec.surgeRequiredW,
+      arraySpec.continuousW,
+      arraySpec.surgeRequiredW,
+    ]
+
+    for (const spec of allSpecs) {
+      expect(spec.explain.plain).toBeTruthy()
+      expect(spec.explain.plain.length).toBeGreaterThan(0)
+      expect(spec.explain.substituted).toContain('=')
+    }
+  })
+})
