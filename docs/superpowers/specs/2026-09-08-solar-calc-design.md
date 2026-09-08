@@ -113,8 +113,9 @@ The pipeline order inside `sizeSystem` is fixed by data dependency, is not the a
    | off-grid / hybrid            | grid-tied
    v                              v
 inverter (from load)           solar (annual-mean PSH)
-   -> voltage                     -> inverter (from array, DC:AC 1.15)
-   -> solar (worst-month PSH)
+   -> solar (worst-month PSH)     -> inverter (from array, DC:AC 1.15)
+   -> voltage (from inverter
+               AND array)
    -> battery
    -> controller
    |                              |
@@ -123,7 +124,7 @@ inverter (from load)           solar (annual-mean PSH)
       wiring -> production -> economics -> validate
 ```
 
-On the battery branch, inverter sizing precedes bus-voltage selection because the voltage threshold is expressed in inverter kW, and battery, controller, and wiring all consume the resolved bus voltage.
+On the battery branch, both inverter and array sizing precede bus-voltage selection, because the voltage is the higher of the requirements those two impose (§5.2). Battery, controller, and wiring all consume the resolved bus voltage and therefore follow it.
 
 Grid-tied reverses this: with no battery to serve overnight load, the inverter is sized to the array it must convert rather than to instantaneous demand. Array kW is derived from annual-mean PSH, and the inverter is `installedPvKw / 1.15`, rounded to a market size — the standard DC:AC overbuild that trades a few clipped peak hours for better shoulder-hour output. Grid-tied designs therefore produce no bus voltage, no battery, and no charge controller.
 
@@ -154,7 +155,18 @@ surgePeakW      = continuousPeakW + max(watts * (surgeFactor - 1))
 
 ### 5.2 System bus voltage
 
-Selected from the resulting inverter size: below 1 kW → 12 V, 1–3 kW → 24 V, above 3 kW → 48 V. Grid-tied systems have no battery bus; this step is skipped.
+The bus voltage is the **higher** of two requirements, because both the inverter and the array impose one:
+
+| Driver | 12 V | 24 V | 48 V |
+|---|---|---|---|
+| Inverter continuous | < 1 kW | 1–3 kW | > 3 kW |
+| Installed array | ≤ 0.8 kW | 0.8–2 kW | > 2 kW |
+
+Grid-tied systems have no battery bus; this step is skipped.
+
+Sizing from the inverter alone — the original rule — produces unbuildable systems across the middle of the target market. A 400 kWh/month off-grid home draws a modest peak but needs a large array; the inverter-only rule put a 3.85 kW array on a 24 V bus, demanding a **201 A** charge controller. Nothing like that is sold at consumer prices, and the DC cabling would be impractical. At 48 V the same array needs about 100 A, which is ordinary. The failure was concentrated at 200–400 kWh/month, the most common Sri Lankan household size.
+
+Because the array requirement is needed to choose the voltage, the array is sized **before** voltage selection. This is safe: array sizing depends only on daily energy, sun hours, losses and panel choice — never on the bus voltage. Battery and charge-controller sizing still follow voltage selection, as they must.
 
 ### 5.3 Array
 
