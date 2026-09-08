@@ -21,6 +21,11 @@ describe('sizeController', () => {
     expect(sizeController(0.3, 12, panel, 1, 18).type.value).toBe('PWM')
   })
 
+  it('stays PWM at exactly the MPPT threshold, since the comparison is strictly greater-than', () => {
+    // 400 W array = mpptThresholdW exactly; arrayW > threshold is false at equality.
+    expect(sizeController(0.4, 12, panel, 1, 18).type.value).toBe('PWM')
+  })
+
   it('raises string Voc as temperature falls below 25 C', () => {
     const cold = sizeController(5, 48, panel, 10, 5)
     const warm = sizeController(5, 48, panel, 10, 25)
@@ -30,6 +35,14 @@ describe('sizeController', () => {
   it('returns the panel Voc unchanged at standard test temperature', () => {
     // At 25 C there is no correction; 10 panels in one string = 500 V
     expect(sizeController(5, 48, panel, 10, 25).maxStringVoc.value).toBeCloseTo(500, 1)
+  })
+
+  it('lowers string Voc when the coldest expected morning is above 25 C', () => {
+    // Warm climates should reduce the correction below 1, since panels lose
+    // voltage when hot — physically correct, not a bug.
+    const warm25 = sizeController(5, 48, panel, 10, 25)
+    const warm35 = sizeController(5, 48, panel, 10, 35)
+    expect(warm35.maxStringVoc.value).toBeLessThan(warm25.maxStringVoc.value)
   })
 
   it('explains why MPPT was chosen', () => {

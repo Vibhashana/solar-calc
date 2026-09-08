@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { sizeSystem } from './sizeSystem'
 import { defaultInputs } from './defaults'
+import { selectBusVoltage } from './voltage'
 import type { SystemInputs } from './types'
 
 function withBill(monthlyKwh: number): SystemInputs {
@@ -80,11 +81,16 @@ describe('orchestration wiring', () => {
   it('derives bus voltage from the inverter size and the array size, not the raw load peak', () => {
     const design = sizeSystem(withBill(200))
     expect(design.inverter.continuousW.value).toBeGreaterThan(0)
-    const inverterVoltage =
-      design.inverter.continuousW.value < 1000 ? 12 : design.inverter.continuousW.value <= 3000 ? 24 : 48
-    const arrayVoltage =
-      design.array.installedPvKw.value <= 0.8 ? 12 : design.array.installedPvKw.value <= 2 ? 24 : 48
-    const expected = Math.max(inverterVoltage, arrayVoltage)
+    // Derived from the real source (selectBusVoltage) rather than hand-copied
+    // threshold constants, so this stays correct if the thresholds ever change.
+    // It still pins the wiring: sizeSystem must feed selectBusVoltage the
+    // inverter's continuousW and the array's installedPvKw, in that order —
+    // a transposed argument would fail this because the two inputs have
+    // different units and different threshold tables.
+    const expected = selectBusVoltage(
+      design.inverter.continuousW.value,
+      design.array.installedPvKw.value,
+    ).value
     expect(design.busVoltage?.value).toBe(expected)
   })
 
