@@ -68,7 +68,7 @@ export function computeLoadProfile(
       continuousPeakW: sized(continuousPeakW, 'W', {
         plain: `If everything you listed were plugged in you would draw ${round2(acc.connectedW)} watts, but in practice not everything runs at once, so we plan for about ${round2(continuousPeakW)} watts.`,
         formula: 'continuousPeakW = connectedW x diversityFactor',
-        substituted: `${round2(acc.connectedW)} x ${diversityFactor} = ${round2(continuousPeakW)} W`,
+        substituted: `${round2(acc.connectedW)} x ${round2(diversityFactor)} = ${round2(continuousPeakW)} W`,
         assumptions: [`Diversity factor of ${diversityFactor} — roughly two thirds of your appliances running together.`],
       }),
       surgePeakW: sized(surgePeakW, 'W', {
@@ -104,7 +104,7 @@ export function computeLoadProfile(
     nightKwh: sized(nightKwh, 'kWh per day', {
       plain: `We assume about ${round2(nightKwh)} units are used after dark, which the battery must cover.`,
       formula: 'nightKwh = dailyKwh x nightFraction',
-      substituted: `${round2(dailyKwh)} x ${load.nightFraction} = ${round2(nightKwh)} kWh`,
+      substituted: `${round2(dailyKwh)} x ${round2(load.nightFraction)} = ${round2(nightKwh)} kWh`,
       assumptions: [`${Math.round(load.nightFraction * 100)}% of household use happens after dark.`],
     }),
     continuousPeakW: sized(continuousPeakW, 'W', {

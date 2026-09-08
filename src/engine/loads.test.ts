@@ -115,4 +115,41 @@ describe('computeLoadProfile — explanations', () => {
       expect(profile[key].explain.substituted).toContain('=')
     }
   })
+
+  it('rounds non-integer inputs to 2 decimal places in substituted strings', () => {
+    // diversityFactor = 1/3 produces repeating decimals
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'lamp', quantity: 1, hoursPerDay: 1, usageWindow: 'night' }] },
+      1 / 3,
+      catalog,
+    )
+    // continuousPeakW.explain.substituted should contain 0.33, not 0.333333...
+    expect(profile.continuousPeakW.explain.substituted).toMatch(/100 x 0\.33 =/)
+    expect(profile.continuousPeakW.explain.substituted).not.toMatch(/0\.3{4,}/)
+  })
+
+  it('bill path rounds nightFraction to 2 decimal places in substituted strings', () => {
+    // nightFraction = 2/3 produces repeating decimals
+    const profile = computeLoadProfile(
+      { mode: 'bill', monthlyKwh: 300, nightFraction: 2 / 3 },
+      0.65,
+    )
+    // nightKwh.explain.substituted should contain 0.67, not 0.666666...
+    expect(profile.nightKwh.explain.substituted).toMatch(/x 0\.67 =/)
+    expect(profile.nightKwh.explain.substituted).not.toMatch(/0\.6{4,}/)
+  })
+
+  it('adds only one appliance unit\'s surge, not multiple, when quantity > 1', () => {
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'pump', quantity: 2, hoursPerDay: 1, usageWindow: 'day' }] },
+      1,
+      catalog,
+    )
+    // 2 pumps × 1000W = 2000W connected
+    // continuous peak = 2000W (no diversity, factor=1)
+    // largest surge = 1000 × (4-1) = 3000W from ONE pump, not TWO
+    // surgePeakW = 2000 + 3000 = 5000W (not 2000 + 6000)
+    expect(profile.continuousPeakW.value).toBeCloseTo(2000, 3)
+    expect(profile.surgePeakW.value).toBeCloseTo(5000, 3)
+  })
 })
