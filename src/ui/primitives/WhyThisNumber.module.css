@@ -1,0 +1,36 @@
+.details {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.summary {
+  cursor: pointer;
+  color: var(--color-accent);
+}
+
+.body {
+  max-width: var(--measure);
+  margin-top: var(--space-2);
+}
+
+.plain {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink);
+  font-size: var(--font-size-body);
+}
+
+.substituted {
+  display: block;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-ground);
+  color: var(--color-ink-quiet);
+  font-variant-numeric: tabular-nums;
+  overflow-x: auto;
+}
+
+.assumptions {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  color: var(--color-ink-quiet);
+}
