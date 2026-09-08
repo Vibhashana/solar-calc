@@ -1,0 +1,61 @@
+/* src/styles/tokens.css */
+:root {
+  --color-ground: #faf9f6;
+  --color-surface: #ffffff;
+  --color-ink: #1a1a18;
+  --color-ink-quiet: #5c5c56;
+  --color-line: #e2e0d8;
+  --color-accent: #1f6f5c;
+  --color-accent-ink: #ffffff;
+  --color-caution: #8a5a00;
+  --color-caution-ground: #fdf6e6;
+
+  --font-size-figure: 2.25rem;
+  --font-size-heading: 1.375rem;
+  --font-size-body: 1rem;
+  --font-size-small: 0.875rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+
+  --radius-sm: 4px;
+  --radius-lg: 10px;
+
+  --measure: 34rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--font-size-body);
+  line-height: 1.55;
+}
+
+/* Every figure on the page is a number the user compares against another
+   number, so digits must not shift width between renders. */
+.figure,
+output,
+td,
+input[type='number'] {
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
