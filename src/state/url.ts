@@ -21,11 +21,25 @@ function isUsageWindow(value: string): value is UsageWindow {
   return (USAGE_WINDOWS as string[]).includes(value)
 }
 
-/** A finite number, or undefined. Rejects '', 'NaN', 'Infinity' and prose. */
+/**
+ * Parse a decimal number string, or return undefined. Rejects hex, 'NaN', 'Infinity',
+ * whitespace, and any non-decimal format. Returns undefined for any invalid input.
+ */
 function num(raw: string | null): number | undefined {
   if (raw === null || raw.trim() === '') return undefined
+  // Match decimal-number pattern: optional leading `-`, digits, optional `.` and digits, optional exponent
+  if (!/^-?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(raw)) return undefined
   const value = Number(raw)
   return Number.isFinite(value) ? value : undefined
+}
+
+/**
+ * Parse a non-negative number, or return undefined. Rejects negative values
+ * for fields where they are meaningless (energy, time, quantity).
+ */
+function numNonNegative(raw: string | null): number | undefined {
+  const value = num(raw)
+  return value !== undefined && value >= 0 ? value : undefined
 }
 
 export function encodeInputs(inputs: SystemInputs): string {
@@ -59,8 +73,8 @@ function decodeEntries(raw: string | null): ApplianceEntry[] {
     .map((chunk): ApplianceEntry | null => {
       const [applianceId, quantity, hours, window] = chunk.split(':')
       if (!applianceId || !findAppliance(applianceId)) return null
-      const q = num(quantity ?? null)
-      const h = num(hours ?? null)
+      const q = numNonNegative(quantity ?? null)
+      const h = numNonNegative(hours ?? null)
       if (q === undefined || h === undefined || !window || !isUsageWindow(window)) return null
       return { applianceId, quantity: q, hoursPerDay: h, usageWindow: window }
     })
@@ -78,10 +92,10 @@ export function decodeInputs(query: string): SystemInputs | null {
   const defaults = defaultInputs(type, district)
   const panelId = params.get('p')
   const batteryModuleId = params.get('b')
-  const autonomy = num(params.get('a'))
-  const psh = num(params.get('psh'))
+  const autonomy = numNonNegative(params.get('a'))
+  const psh = numNonNegative(params.get('psh'))
   const nightFraction = num(params.get('nf'))
-  const monthlyKwh = num(params.get('kwh'))
+  const monthlyKwh = numNonNegative(params.get('kwh'))
 
   const load: SystemInputs['load'] =
     params.get('l') === 'a'
