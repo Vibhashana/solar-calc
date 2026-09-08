@@ -6,6 +6,7 @@ import { sizeInverterFromArray, sizeInverterFromLoad } from './inverter'
 import { computeLoadProfile } from './loads'
 import { resolveDesignPsh, sizeArray } from './solar'
 import { selectBusVoltage } from './voltage'
+import { validateDesign } from './validate'
 import type { SystemDesign, SystemInputs } from './types'
 
 export function sizeSystem(inputs: SystemInputs): SystemDesign {
@@ -20,7 +21,7 @@ export function sizeSystem(inputs: SystemInputs): SystemDesign {
 
   if (inputs.systemType === 'grid-tied') {
     const array = sizeArray(load.dailyKwh.value, designPsh, inputs.derate, panel)
-    return {
+    const design: SystemDesign = {
       inputs,
       load,
       array,
@@ -30,6 +31,7 @@ export function sizeSystem(inputs: SystemInputs): SystemDesign {
       controller: null,
       warnings: [],
     }
+    return { ...design, warnings: validateDesign(design) }
   }
 
   const batteryModule = findBatteryModule(inputs.batteryModuleId)
@@ -52,5 +54,8 @@ export function sizeSystem(inputs: SystemInputs): SystemDesign {
     inputs.minAmbientC,
   )
 
-  return { inputs, load, array, inverter, busVoltage, battery, controller, warnings: [] }
+  const design: SystemDesign = {
+    inputs, load, array, inverter, busVoltage, battery, controller, warnings: [],
+  }
+  return { ...design, warnings: validateDesign(design) }
 }
