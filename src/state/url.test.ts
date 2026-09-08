@@ -19,21 +19,57 @@ function makeRandom(seed: number) {
   }
 }
 
-function generateInputs(random: () => number): SystemInputs {
+/** Tracks edge case coverage in the property test generator. */
+const edgeCaseCounts = { hoursPerDay0: 0, monthlyKwh0: 0, pshOverride0: 0, emptyEntries: 0 }
+
+function generateInputs(random: () => number, caseIndex: number): SystemInputs {
   const pick = <T,>(list: T[], fallback: T): T => list[Math.floor(random() * list.length)] ?? fallback
   const systemType = pick(TYPES, 'hybrid')
   const districtId = pick(DISTRICTS, 'colombo')
   const base = defaultInputs(systemType, districtId)
+
+  // Decide mode FIRST, then force edge cases appropriate to that mode
   const useAppliances = random() < 0.5
 
-  // Deliberately seed edge cases: pshOverride=0, hoursPerDay=0, monthlyKwh=0
-  const caseIndex = Math.floor(random() * 200)
+  // Force pshOverride=0 in the first case (applies to both modes)
   let pshOverride: number | undefined
   if (caseIndex === 0) {
     pshOverride = 0
+    edgeCaseCounts.pshOverride0 += 1
   } else if (random() < 0.3) {
     pshOverride = Math.round(random() * 600) / 100
   }
+
+  const load: SystemInputs['load'] = useAppliances
+    ? {
+        mode: 'appliances',
+        entries:
+          random() < 0.1
+            ? (() => {
+                edgeCaseCounts.emptyEntries += 1
+                return []
+              })()
+            : [
+                {
+                  applianceId: pick(APPLIANCES, 'led-bulb'),
+                  quantity: 1 + Math.floor(random() * 20),
+                  // Force hoursPerDay=0 when we're in appliances mode and have hit case 1
+                  hoursPerDay: caseIndex % 2 === 1 ? (() => { edgeCaseCounts.hoursPerDay0 += 1; return 0 })() : Math.round(random() * 240) / 10,
+                  usageWindow: pick(USAGE_WINDOWS, 'night'),
+                },
+                {
+                  applianceId: pick(APPLIANCES, 'ceiling-fan'),
+                  quantity: 1 + Math.floor(random() * 5),
+                  hoursPerDay: Math.round(random() * 240) / 10,
+                  usageWindow: pick(USAGE_WINDOWS, 'both'),
+                },
+              ],
+      }
+    : (() => {
+        // Force monthlyKwh=0 when we're in bill mode and have hit an even case
+        const monthlyKwh = caseIndex % 2 === 0 && caseIndex !== 0 ? (() => { edgeCaseCounts.monthlyKwh0 += 1; return 0 })() : Math.round(random() * 5000)
+        return { mode: 'bill', monthlyKwh, nightFraction: Math.round(random() * 100) / 100 }
+      })()
 
   return {
     ...base,
@@ -41,38 +77,26 @@ function generateInputs(random: () => number): SystemInputs {
     autonomyDays: Math.round(random() * 10) / 2,
     panelId: pick(PANELS, 'generic-550'),
     batteryModuleId: pick(BATTERIES, 'lfp-51v-100ah'),
-    load: useAppliances
-      ? {
-          mode: 'appliances',
-          entries:
-            random() < 0.1
-              ? [] // Sometimes emit an empty list
-              : [
-                  {
-                    applianceId: pick(APPLIANCES, 'led-bulb'),
-                    quantity: 1 + Math.floor(random() * 20),
-                    hoursPerDay: caseIndex === 1 ? 0 : Math.round(random() * 240) / 10,
-                    usageWindow: pick(USAGE_WINDOWS, 'night'),
-                  },
-                  {
-                    applianceId: pick(APPLIANCES, 'ceiling-fan'),
-                    quantity: 1 + Math.floor(random() * 5),
-                    hoursPerDay: Math.round(random() * 240) / 10,
-                    usageWindow: pick(USAGE_WINDOWS, 'both'),
-                  },
-                ],
-        }
-      : { mode: 'bill', monthlyKwh: caseIndex === 2 ? 0 : Math.round(random() * 5000), nightFraction: Math.round(random() * 100) / 100 },
+    load,
   }
 }
 
 describe('round trip', () => {
   it('survives 200 generated designs unchanged', () => {
+    edgeCaseCounts.hoursPerDay0 = 0
+    edgeCaseCounts.monthlyKwh0 = 0
+    edgeCaseCounts.pshOverride0 = 0
+    edgeCaseCounts.emptyEntries = 0
     const random = makeRandom(20260908)
     for (let i = 0; i < 200; i += 1) {
-      const inputs = generateInputs(random)
+      const inputs = generateInputs(random, i)
       expect(decodeInputs(encodeInputs(inputs)), `case ${i}`).toEqual(inputs)
     }
+    // Verify edge cases are actually generated
+    expect(edgeCaseCounts.hoursPerDay0).toBeGreaterThan(0)
+    expect(edgeCaseCounts.monthlyKwh0).toBeGreaterThan(0)
+    expect(edgeCaseCounts.pshOverride0).toBeGreaterThan(0)
+    expect(edgeCaseCounts.emptyEntries).toBeGreaterThan(0)
   })
 
   it('produces a query with no JSON blob in it', () => {
@@ -80,6 +104,23 @@ describe('round trip', () => {
     expect(encoded).not.toContain('{')
     expect(encoded).toContain('t=hybrid')
     expect(encoded).toContain('d=colombo')
+  })
+
+  it('round-trips hoursPerDay: 0 correctly', () => {
+    const inputs: SystemInputs = {
+      ...defaultInputs('off-grid', 'colombo'),
+      load: {
+        mode: 'appliances',
+        entries: [{ applianceId: 'led-bulb', quantity: 1, hoursPerDay: 0, usageWindow: 'day' }],
+      },
+    }
+    const encoded = encodeInputs(inputs)
+    const decoded = decodeInputs(encoded)
+    expect(decoded).toEqual(inputs)
+    expect(decoded?.load).toEqual({
+      mode: 'appliances',
+      entries: [{ applianceId: 'led-bulb', quantity: 1, hoursPerDay: 0, usageWindow: 'day' }],
+    })
   })
 })
 
