@@ -14,7 +14,9 @@
 
 These apply to every task below without being repeated.
 
-- **No runtime dependencies** beyond `react` and `react-dom`. No chart library, no state library, no router, no UI kit, no date library, no HTTP client. Dev dependencies are limited to `vite`, `@vitejs/plugin-react`, `typescript`, `vitest`, and `@types/*`.
+- **No runtime dependencies** beyond `react` and `react-dom`. No chart library, no state library, no router, no UI kit, no date library, no HTTP client. Dev dependencies are limited to `vite`, `@vitejs/plugin-react`, `typescript`, `tsx`, `vitest`, `@types/*`, and — from Task 16 only — `jsdom`, `@testing-library/react` and `@testing-library/dom`.
+
+  The three testing-library additions were authorised when Task 16 was dispatched: rendering a React component in a test requires a DOM, and `vite.config.ts` switches the vitest environment to `jsdom` at the same point. They are dev-only and do not touch the runtime constraint, which is the one that matters for what ships. Recorded here because the original list did not include them and a later reader diffing against it would otherwise read scope creep.
 - **`src/engine/**` and `src/data/**` must not import from `react`, `src/ui/**`, or `src/state/**`.** The dependency arrow points one way only. A test enforces this (Task 15).
 - **TypeScript `strict: true`.** No `any`, no non-null assertions (`!`), no `@ts-ignore`.
 - **Every engine function that returns a number returns `Sized<number>`, never a bare `number`.** Internal helpers may return bare numbers; anything reaching `SystemDesign` is wrapped.
