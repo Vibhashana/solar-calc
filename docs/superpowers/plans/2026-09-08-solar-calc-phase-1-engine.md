@@ -1540,7 +1540,7 @@ export function selectBusVoltage(inverterContinuousW: number): Sized<BusVoltage>
   return sized(value, 'V', {
     plain: `Build the battery side at ${value} volts. Higher voltage means less current for the same power, which means thinner cables and less wasted heat — so bigger systems use higher voltage.`,
     formula: 'busVoltage = 12 below 1 kW, 24 up to 3 kW, 48 above 3 kW',
-    substituted: `${round2(inverterContinuousW)} W inverter -> ${value} V`,
+    substituted: `busVoltage = ${value} V (from a ${round2(inverterContinuousW)} W inverter)`,
     assumptions: ['Standard practice for battery-based systems.'],
   })
 }
@@ -1686,7 +1686,7 @@ export function resolveDesignPsh(
     return sized(override, 'sun hours per day', {
       plain: `Using your own figure of ${round2(override)} good sun hours a day.`,
       formula: 'designPsh = userOverride',
-      substituted: `${round2(override)} hours`,
+      substituted: `designPsh = ${round2(override)} hours (your own figure)`,
       assumptions: ['You supplied this figure yourself.'],
     })
   }
@@ -1735,7 +1735,7 @@ export function sizeArray(
     derateTotal: sized(derateTotal, 'fraction', {
       plain: `Panels never deliver their full rating in the real world. After dust, heat, cable losses and conversion, expect about ${Math.round(derateTotal * 100)}% of the number printed on the panel.`,
       formula: 'derateTotal = soiling x temperature x wiring x conversion',
-      substituted: `${derate.soiling} x ${derate.temperature} x ${derate.wiring} x ${derate.conversion} = ${round2(derateTotal)}`,
+      substituted: `${round2(derate.soiling)} x ${round2(derate.temperature)} x ${round2(derate.wiring)} x ${round2(derate.conversion)} = ${round2(derateTotal)}`,
       assumptions: [
         `Dust and dirt: ${Math.round((1 - derate.soiling) * 100)}% loss.`,
         `Heat: ${Math.round((1 - derate.temperature) * 100)}% loss — panels lose output as they get hot, and Sri Lankan roofs get very hot.`,
@@ -1881,7 +1881,7 @@ export function sizeBattery(
     usableKwh: sized(usableKwh, 'kWh', {
       plain: `The battery has to supply ${round2(nightKwh)} units a night for ${autonomyDays} ${autonomyDays === 1 ? 'day' : 'days'}, so ${round2(usableKwh)} units have to come out of it.`,
       formula: 'usableKwh = nightKwh x autonomyDays',
-      substituted: `${round2(nightKwh)} x ${autonomyDays} = ${round2(usableKwh)} kWh`,
+      substituted: `${round2(nightKwh)} x ${round2(autonomyDays)} = ${round2(usableKwh)} kWh`,
       assumptions: [`${autonomyDays} days of cloudy weather with no useful sunshine.`],
     }),
     nominalKwh: sized(nominalKwh, 'kWh', {
@@ -1902,13 +1902,13 @@ export function sizeBattery(
     modulesInSeries: sized(modulesInSeries, 'modules', {
       plain: `Wire ${modulesInSeries} ${modulesInSeries === 1 ? 'battery' : 'batteries'} in series to reach ${busVoltage} volts.`,
       formula: 'modulesInSeries = round(busVoltage / moduleVolts)',
-      substituted: `round(${busVoltage} / ${module.nominalVolts}) = ${modulesInSeries}`,
+      substituted: `round(${busVoltage} / ${round2(module.nominalVolts)}) = ${modulesInSeries}`,
       assumptions: [`Using ${module.name}.`],
     }),
     modulesInParallel: sized(modulesInParallel, 'strings', {
       plain: `Then put ${modulesInParallel} of those ${modulesInParallel === 1 ? 'set' : 'sets'} side by side to get enough capacity. That is ${modulesInSeries * modulesInParallel} batteries in total.`,
       formula: 'modulesInParallel = ceil(bankAh / moduleAh)',
-      substituted: `ceil(${round2(bankAh)} / ${module.ampHours}) = ${modulesInParallel}`,
+      substituted: `ceil(${round2(bankAh)} / ${round2(module.ampHours)}) = ${modulesInParallel}`,
       assumptions: [`Using ${module.name}.`],
     }),
   }
@@ -2027,13 +2027,13 @@ export function sizeController(
           ? `Use an MPPT controller. It converts the panels' higher voltage down to battery voltage instead of wasting the difference, which typically recovers 20-30% more energy. At ${round2(arrayW)} watts that difference is worth far more than the extra cost.`
           : `A simple PWM controller is fine at this size. MPPT controllers recover more energy, but on an array of only ${round2(arrayW)} watts the saving would not repay the extra cost.`,
       formula: `type = arrayW > ${DEFAULTS.controller.mpptThresholdW} ? 'MPPT' : 'PWM'`,
-      substituted: `${round2(arrayW)} W -> ${type}`,
+      substituted: `type = ${type} (array is ${round2(arrayW)} W)`,
       assumptions: [`MPPT is worth its cost above about ${DEFAULTS.controller.mpptThresholdW} W.`],
     }),
     maxStringVoc: sized(maxStringVoc, 'V', {
       plain: `On the coldest morning your panels could reach ${round2(maxStringVoc)} volts with nothing connected. The controller's maximum input voltage must be higher than this, or it will be damaged. Panels produce more voltage when cold, which catches people out.`,
       formula: 'maxStringVoc = panelVoc x panelCount x (1 + |tempCoefficient| / 100 x (25 - minAmbientC))',
-      substituted: `${panel.vocVolts} x ${panelCount} x ${round2(vocRise)} = ${round2(maxStringVoc)} V`,
+      substituted: `${round2(panel.vocVolts)} x ${panelCount} x ${round2(vocRise)} = ${round2(maxStringVoc)} V`,
       assumptions: [
         `Coldest expected temperature of ${minAmbientC} °C.`,
         'All panels wired in a single series string — wiring them in two strings halves this voltage.',
@@ -2296,6 +2296,26 @@ describe('validateDesign', () => {
     }
   })
 
+  it('flags a battery whose voltage cannot build the system voltage', () => {
+    // Default inputs at a modest bill give a 24 V bus, while the default module is
+    // 51.2 V — one in series is 51.2 V, not 24 V. This was a real user-facing defect.
+    const inputs: SystemInputs = {
+      ...defaultInputs('off-grid', 'colombo'),
+      load: { mode: 'bill', monthlyKwh: 200, nightFraction: 0.6 },
+      batteryModuleId: 'lfp-51v-100ah',
+    }
+    expect(ids(inputs)).toContain('battery-voltage-mismatch')
+  })
+
+  it('does not flag a battery that matches the system voltage', () => {
+    const inputs: SystemInputs = {
+      ...defaultInputs('off-grid', 'colombo'),
+      load: { mode: 'bill', monthlyKwh: 200, nightFraction: 0.6 },
+      batteryModuleId: 'lfp-24v-100ah',
+    }
+    expect(ids(inputs)).not.toContain('battery-voltage-mismatch')
+  })
+
   it('produces no battery warnings for grid-tied systems', () => {
     const list = ids(defaultInputs('grid-tied', 'colombo'))
     expect(list).not.toContain('slow-recharge')
@@ -2349,6 +2369,28 @@ export function validateDesign(design: SystemDesign): Warning[] {
 
     const module = findBatteryModule(design.inputs.batteryModuleId)
     if (module) {
+      // The bank must physically reach the system voltage. modulesInSeries is a
+      // rounded integer, so a module whose nominal voltage does not divide the bus
+      // produces a bank at the wrong voltage — reachable with default inputs, where
+      // a 51.2 V module against a 24 V bus yields one module in series (51.2 V).
+      // Connecting that to a 24 V inverter destroys equipment, so this warns loudly.
+      const actualBankVolts = design.battery.modulesInSeries.value * module.nominalVolts
+      const drift = Math.abs(actualBankVolts - design.busVoltage.value) / design.busVoltage.value
+      // 10%, not tighter. LiFePO4 packs are 12.8/25.6/51.2 V but are sold as
+      // 12/24/48 V systems, so EVERY correct pairing sits at 6.7% drift. A 5%
+      // tolerance would reject every valid bank. A real mismatch is 113% out.
+      if (drift > 0.1) {
+        warnings.push({
+          id: 'battery-voltage-mismatch',
+          severity: 'caution',
+          message:
+            `These batteries are ${round2(module.nominalVolts)} V each, which cannot be wired into a ` +
+            `${design.busVoltage.value} V bank — you would end up with ${round2(actualBankVolts)} V. ` +
+            'Connecting that to the inverter would damage it. Pick a battery whose voltage divides ' +
+            `into ${design.busVoltage.value} V, or change the system voltage.`,
+        })
+      }
+
       const chargeAmps = (design.array.installedPvKw.value * 1000) / design.busVoltage.value
       const maxChargeAmps =
         module.ampHours * design.battery.modulesInParallel.value * module.maxChargeC
@@ -2527,6 +2569,15 @@ describe('explanation coverage', () => {
           const sizedField = field as { explain: { plain: string; substituted: string } }
           expect(sizedField.explain.plain.trim(), `${key}.explain.plain`).not.toBe('')
           expect(sizedField.explain.substituted.trim(), `${key}.explain.substituted`).not.toBe('')
+          // types.ts documents substituted as "ending in = result". Task 8 shipped two
+          // strings that broke that contract and no test caught it, because coverage
+          // only checked non-emptiness. This is that missing assertion.
+          expect(sizedField.explain.substituted, `${key}.explain.substituted`).toContain('=')
+          // No number in substituted may carry more than 2 decimal places.
+          for (const numeral of sizedField.explain.substituted.match(/\d+\.\d+/g) ?? []) {
+            const decimals = numeral.split('.')[1] ?? ''
+            expect(decimals.length, `${key}.explain.substituted has "${numeral}"`).toBeLessThanOrEqual(2)
+          }
         }
       }
       if (design.busVoltage) expect(design.busVoltage.explain.plain.trim()).not.toBe('')

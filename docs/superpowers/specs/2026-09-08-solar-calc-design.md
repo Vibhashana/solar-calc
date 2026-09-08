@@ -192,6 +192,9 @@ Two cross-checks, both surfaced as warnings rather than silent adjustments:
 
 1. **Recharge feasibility.** The array must replace `usableKwh` plus the following day's load within three worst-month solar days. One day is not a realistic target — a two-day bank inherently takes two to three days to recover — so a one-day test would fire on every off-grid design and become noise. Three days is the point at which recovery is genuinely too slow to trust.
 2. **Charge current.** `arrayW / busVoltage` must remain within the bank's C-rate limit (default 0.5C charge for LiFePO₄).
+3. **Bank voltage reachability.** The chosen module's nominal voltage must divide into the system voltage. Because the series count is a rounded integer, a mismatched module silently yields a bank at the wrong voltage — a 51.2 V module against a 24 V bus gives one module in series, so 51.2 V. Connecting that to a 24 V inverter destroys it, and a beginner has no way to catch the error. Where the achievable bank voltage drifts more than **10 %** from the system voltage, the design says so plainly and the explanation must not claim the target voltage was reached.
+
+The 10 % figure is not arbitrary and must not be tightened. LiFePO₄ cells are 3.2 V nominal, so real packs are 12.8 V, 25.6 V and 51.2 V — all sold as "12 V", "24 V" and "48 V" systems. Every correct pairing therefore sits at exactly 6.7 % drift. A tolerance below that rejects every valid LiFePO₄ bank in existence and tells users their right answer is wrong. A genuine mismatch is far larger: a 51.2 V module against a 24 V bus is 113 % out.
 
 ### 5.5 Inverter
 
