@@ -99,6 +99,26 @@ describe('explanation coverage', () => {
     sizeSystem(defaultInputs('grid-tied', 'jaffna')),
   ]
 
+  // Single source of truth for what "explained" means, so every Sized value —
+  // whether it lives inside a grouped object (load, array, inverter, battery,
+  // controller) or stands alone (busVoltage) — gets the identical three
+  // checks. Before this helper existed, busVoltage only got the non-empty
+  // `plain` check, so a regression in its `substituted` string (a dropped
+  // `=`, or an unrounded decimal) would have passed silently.
+  function expectSizedIsExplained(field: { explain: { plain: string; substituted: string } }, label: string) {
+    expect(field.explain.plain.trim(), `${label}.explain.plain`).not.toBe('')
+    expect(field.explain.substituted.trim(), `${label}.explain.substituted`).not.toBe('')
+    // types.ts documents substituted as "ending in = result". Task 8 shipped two
+    // strings that broke that contract and no test caught it, because coverage
+    // only checked non-emptiness. This is that missing assertion.
+    expect(field.explain.substituted, `${label}.explain.substituted`).toContain('=')
+    // No number in substituted may carry more than 2 decimal places.
+    for (const numeral of field.explain.substituted.match(/\d+\.\d+/g) ?? []) {
+      const decimals = numeral.split('.')[1] ?? ''
+      expect(decimals.length, `${label}.explain.substituted has "${numeral}"`).toBeLessThanOrEqual(2)
+    }
+  }
+
   it('explains every number in every design', () => {
     for (const design of designs) {
       const groups = [design.load, design.array, design.inverter, design.battery, design.controller]
@@ -106,21 +126,10 @@ describe('explanation coverage', () => {
         if (!group) continue
         for (const [key, field] of Object.entries(group)) {
           if (typeof field !== 'object' || field === null || !('explain' in field)) continue
-          const sizedField = field as { explain: { plain: string; substituted: string } }
-          expect(sizedField.explain.plain.trim(), `${key}.explain.plain`).not.toBe('')
-          expect(sizedField.explain.substituted.trim(), `${key}.explain.substituted`).not.toBe('')
-          // types.ts documents substituted as "ending in = result". Task 8 shipped two
-          // strings that broke that contract and no test caught it, because coverage
-          // only checked non-emptiness. This is that missing assertion.
-          expect(sizedField.explain.substituted, `${key}.explain.substituted`).toContain('=')
-          // No number in substituted may carry more than 2 decimal places.
-          for (const numeral of sizedField.explain.substituted.match(/\d+\.\d+/g) ?? []) {
-            const decimals = numeral.split('.')[1] ?? ''
-            expect(decimals.length, `${key}.explain.substituted has "${numeral}"`).toBeLessThanOrEqual(2)
-          }
+          expectSizedIsExplained(field as { explain: { plain: string; substituted: string } }, key)
         }
       }
-      if (design.busVoltage) expect(design.busVoltage.explain.plain.trim()).not.toBe('')
+      if (design.busVoltage) expectSizedIsExplained(design.busVoltage, 'busVoltage')
     }
   })
 })

@@ -28,7 +28,6 @@ describe('engine and data purity', () => {
 
   it('performs no I/O and reads no globals', () => {
     for (const file of files) {
-      if (file.includes('architecture.test')) continue
       const source = readFileSync(file, 'utf8')
       expect(source, file).not.toMatch(/\bfetch\s*\(/)
       expect(source, file).not.toMatch(/\blocalStorage\b/)
