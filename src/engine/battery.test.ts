@@ -33,7 +33,7 @@ describe('sizeBattery', () => {
   it('adds parallel strings until capacity is met', () => {
     const spec = sizeBattery(6, 2, 48, module51v)
     // needs ~310 Ah at 48 V, module is 100 Ah -> 4 strings
-    expect(spec.modulesInParallel.value).toBeGreaterThanOrEqual(3)
+    expect(spec.modulesInParallel.value).toBe(4)
   })
 
   it('returns an empty bank for zero night load', () => {
@@ -45,5 +45,19 @@ describe('sizeBattery', () => {
   it('explains the depth of discharge without using the phrase unexplained', () => {
     const spec = sizeBattery(6, 2, 48, module51v)
     expect(spec.nominalKwh.explain.plain).toMatch(/empty|flat|full/i)
+  })
+
+  it('explains series wiring truthfully when voltage is compatible', () => {
+    // 12.8 V module on 48 V bus: round(48 / 12.8) = 4, actual = 4 x 12.8 = 51.2 V (~6.7% above 48 V)
+    const module12v: BatteryModuleSpec = { ...module51v, id: 'm12', nominalVolts: 12.8 }
+    const spec = sizeBattery(6, 2, 48, module12v)
+    expect(spec.modulesInSeries.explain.plain).toMatch(/reach.*48/)
+  })
+
+  it('refuses to build a bank when module voltage is incompatible', () => {
+    // 51.2 V module on 24 V bus: round(24 / 51.2) = 0 -> clamped to 1, actual = 1 x 51.2 = 51.2 V (113% mismatch)
+    const spec = sizeBattery(6, 2, 24, module51v)
+    expect(spec.modulesInSeries.explain.plain).not.toMatch(/reach.*24/)
+    expect(spec.modulesInSeries.explain.plain).toMatch(/cannot/)
   })
 })

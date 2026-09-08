@@ -14,8 +14,15 @@ export function sizeBattery(
   const bankAh = (nominalKwh * 1000) / busVoltage
 
   const modulesInSeries = Math.max(1, Math.round(busVoltage / module.nominalVolts))
+  const actualBankVolts = modulesInSeries * module.nominalVolts
+  const voltageError = Math.abs(actualBankVolts - busVoltage) / busVoltage
+  const isCompatible = voltageError <= 0.1
   const stringAh = module.ampHours
   const modulesInParallel = bankAh > 0 ? Math.ceil(bankAh / stringAh) : 0
+
+  const seriesPlain = isCompatible
+    ? `Wire ${modulesInSeries} ${modulesInSeries === 1 ? 'battery' : 'batteries'} in series to reach ${busVoltage} volts.`
+    : `These batteries are ${round2(module.nominalVolts)} V each, so they cannot be wired into a ${busVoltage} V bank — ${modulesInSeries} in series would give ${round2(actualBankVolts)} V. Choose a battery whose voltage divides into ${busVoltage} V.`
 
   return {
     usableKwh: sized(usableKwh, 'kWh', {
@@ -40,10 +47,13 @@ export function sizeBattery(
       assumptions: [],
     }),
     modulesInSeries: sized(modulesInSeries, 'modules', {
-      plain: `Wire ${modulesInSeries} ${modulesInSeries === 1 ? 'battery' : 'batteries'} in series to reach ${busVoltage} volts.`,
+      plain: seriesPlain,
       formula: 'modulesInSeries = round(busVoltage / moduleVolts)',
       substituted: `round(${busVoltage} / ${round2(module.nominalVolts)}) = ${modulesInSeries}`,
-      assumptions: [`Using ${module.name}.`],
+      assumptions: [
+        `Using ${module.name}.`,
+        `Bank voltage must match the system voltage (within 10%).`,
+      ],
     }),
     modulesInParallel: sized(modulesInParallel, 'strings', {
       plain: `Then put ${modulesInParallel} of those ${modulesInParallel === 1 ? 'set' : 'sets'} side by side to get enough capacity. That is ${modulesInSeries * modulesInParallel} batteries in total.`,
