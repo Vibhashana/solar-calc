@@ -1,4 +1,5 @@
 import type { Sized, SystemDesign } from '../../engine/types'
+import { formatFigure } from '../format'
 import styles from './ShowTheMaths.module.css'
 
 interface CollectedField {
@@ -62,7 +63,7 @@ export function ShowTheMaths({ design }: { design: SystemDesign }) {
             </dt>
             <dd className={styles.body}>
               <p className={styles.value}>
-                {String(field.value)} {field.unit}
+                {typeof field.value === 'number' ? formatFigure(field.value) : String(field.value)} {field.unit}
               </p>
               <p>{field.explain.plain}</p>
               <code className={styles.code}>{field.explain.formula}</code>

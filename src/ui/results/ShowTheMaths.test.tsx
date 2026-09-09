@@ -90,6 +90,42 @@ describe('ShowTheMaths', () => {
     const rendered = screen.getAllByRole('term')
     expect(rendered.length).toBe(collectSizedFields(offGrid).length)
   })
+
+  it('formats numeric values as rounded figures, not raw floats', () => {
+    render(<ShowTheMaths design={offGrid} />)
+    act(() => {
+      screen.getByText('Show me the maths').click()
+    })
+    // The dayKwh field has a long float value (3.28515111695138 kWh per day).
+    // It should render rounded (e.g., "3.29"), not the raw float.
+    // Verify the raw float is NOT rendered anywhere on the page.
+    expect(screen.queryByText(/3\.28515111695138/)).toBeNull()
+    // Check that the formatted value appears by looking at all term labels.
+    const terms = screen.getAllByRole('term')
+    const dayTerm = terms.find((term) => term.textContent?.includes('Used during the day'))
+    const dayRow = dayTerm?.closest('div')
+    const valueParagraph = dayRow?.querySelector('p')
+    expect(valueParagraph?.textContent).toContain('3.29')
+  })
+
+  it('renders string-typed values as-is', () => {
+    render(<ShowTheMaths design={offGrid} />)
+    act(() => {
+      screen.getByText('Show me the maths').click()
+    })
+    // The controller type field is a string ('MPPT' or 'PWM').
+    // It should render as the string value, not converted or modified.
+    const fields = collectSizedFields(offGrid)
+    const typeField = fields.find((f) => f.label === 'Controller type')
+    if (typeField && typeof typeField.field.value === 'string') {
+      const terms = screen.getAllByRole('term')
+      const typeTerm = terms.find((term) => term.textContent?.includes('Controller type'))
+      const typeRow = typeTerm?.closest('div')
+      const valueParagraph = typeRow?.querySelector('p')
+      // The value should be the string (MPPT or PWM) followed by the unit.
+      expect(valueParagraph?.textContent).toMatch(new RegExp(`${typeField.field.value}`))
+    }
+  })
 })
 
 describe('Warnings', () => {
