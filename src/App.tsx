@@ -5,6 +5,7 @@ import { decodeInputs, encodeInputs } from './state/url'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { Results } from './ui/results/Results'
 import { Wizard } from './ui/wizard/Wizard'
+import styles from './App.module.css'
 
 interface DesignProps {
   state: AppState
@@ -31,7 +32,7 @@ export function App() {
 
   return (
     <main>
-      <header>
+      <header className={styles.header}>
         <h1>Solar system calculator</h1>
         <p>Work out what size solar system you need, and understand why.</p>
       </header>

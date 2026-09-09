@@ -36,7 +36,7 @@ export function StepSystemType({ state, dispatch }: StepProps) {
   return (
     <>
       <ChoiceList
-        legend="What are you building?"
+        legend="Select your system type"
         choices={CHOICES}
         value={state.inputs.systemType}
         onChange={choose}
