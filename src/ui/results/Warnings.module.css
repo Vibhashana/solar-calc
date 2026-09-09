@@ -28,3 +28,17 @@
   background: var(--color-caution-ground);
   color: var(--color-caution);
 }
+
+.tag {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.caution .tag {
+  color: var(--color-caution);
+}

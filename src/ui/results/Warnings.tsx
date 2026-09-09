@@ -12,6 +12,7 @@ export function Warnings({ warnings }: { warnings: Warning[] }) {
       <ul className={styles.list}>
         {warnings.map((warning) => (
           <li key={warning.id} className={warning.severity === 'caution' ? styles.caution : styles.info}>
+            <strong className={styles.tag}>{warning.severity === 'caution' ? 'Caution' : 'Note'}</strong>
             {warning.message}
           </li>
         ))}
