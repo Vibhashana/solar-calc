@@ -95,4 +95,37 @@ describe('StepUsage', () => {
     clickRadio(/list my appliances/)
     expect(screen.getByText(/at any one moment/i)).toBeDefined()
   })
+
+  it('does not carry a stale clamp note into a row that slides into a reused list key', () => {
+    render(<Harness />)
+    clickRadio(/list my appliances/)
+    setValue(screen.getByLabelText(/Appliance to add/), 'led-bulb', 'select')
+    clickButton(/Add appliance/)
+    clickButton(/Add appliance/)
+
+    const hoursFields = () => screen.getAllByLabelText(/Hours a day/)
+    setValue(hoursFields()[0] as HTMLElement, '999', 'input')
+    expect(screen.getByRole('status').textContent).toMatch(/24/)
+
+    setValue(hoursFields()[1] as HTMLElement, '3', 'input')
+
+    act(() => {
+      screen.getAllByRole('button', { name: /Remove/ })[0]?.click()
+    })
+
+    expect(screen.getByText(/"hoursPerDay":3/)).toBeDefined()
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('gives each Remove button an accessible name naming its appliance', () => {
+    render(<Harness />)
+    clickRadio(/list my appliances/)
+    setValue(screen.getByLabelText(/Appliance to add/), 'led-bulb', 'select')
+    clickButton(/Add appliance/)
+    setValue(screen.getByLabelText(/Appliance to add/), 'ceiling-fan', 'select')
+    clickButton(/Add appliance/)
+
+    expect(screen.getByRole('button', { name: /Remove LED bulb/ })).toBeDefined()
+    expect(screen.getByRole('button', { name: /Remove Ceiling fan/ })).toBeDefined()
+  })
 })

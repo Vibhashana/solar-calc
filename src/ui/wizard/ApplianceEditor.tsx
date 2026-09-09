@@ -90,6 +90,7 @@ export function ApplianceEditor({ state, dispatch }: StepProps) {
               <button
                 type="button"
                 className={styles.remove}
+                aria-label={`Remove ${appliance?.name ?? entry.applianceId}`}
                 onClick={() => dispatch({ type: 'removeAppliance', index })}
               >
                 Remove
