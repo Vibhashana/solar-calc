@@ -1,0 +1,67 @@
+.rationale {
+  max-width: var(--measure);
+  color: var(--color-ink-quiet);
+}
+
+.adder {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.add {
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  cursor: pointer;
+}
+
+.empty {
+  color: var(--color-ink-quiet);
+}
+
+.rows {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+@media (min-width: 40rem) {
+  .row {
+    grid-template-columns: 1fr auto auto auto auto;
+    align-items: end;
+  }
+}
+
+.rowName {
+  margin: 0;
+  font-weight: 600;
+}
+
+.watts {
+  color: var(--color-ink-quiet);
+  font-weight: 400;
+  font-size: var(--font-size-small);
+}
+
+.remove {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+}
