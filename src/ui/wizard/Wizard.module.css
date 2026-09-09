@@ -55,3 +55,25 @@
   align-items: flex-start;
   margin-top: var(--space-2);
 }
+
+.resolved {
+  max-width: var(--measure);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.provenance {
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+}
+
+.override {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.override > summary {
+  cursor: pointer;
+  color: var(--color-accent);
+}
