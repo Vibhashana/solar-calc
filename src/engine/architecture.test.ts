@@ -6,7 +6,8 @@ function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const full = join(dir, name)
     if (statSync(full).isDirectory()) return sourceFiles(full)
-    return name.endsWith('.ts') && !name.endsWith('.test.ts') ? [full] : []
+    const isSource = (name.endsWith('.ts') || name.endsWith('.tsx')) && !name.endsWith('.test.ts') && !name.endsWith('.test.tsx')
+    return isSource ? [full] : []
   })
 }
 
@@ -32,6 +33,35 @@ describe('engine and data purity', () => {
       expect(source, file).not.toMatch(/\bfetch\s*\(/)
       expect(source, file).not.toMatch(/\blocalStorage\b/)
       expect(source, file).not.toMatch(/\bwindow\./)
+    }
+  })
+})
+
+describe('state layer boundaries', () => {
+  const files = sourceFiles('src/state')
+
+  it('finds the state modules', () => {
+    expect(files.length).toBeGreaterThan(1)
+  })
+
+  it('never imports React or UI code', () => {
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8')
+      expect(source, file).not.toMatch(/from ['"]react/)
+      expect(source, file).not.toMatch(/from ['"].*\/ui\//)
+    }
+  })
+})
+
+describe('storage', () => {
+  it('keeps the URL as the only persistence', () => {
+    const files = [...sourceFiles('src/engine'), ...sourceFiles('src/data'), ...sourceFiles('src/state'), ...sourceFiles('src/ui')]
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8')
+      expect(source, file).not.toMatch(/\blocalStorage\b/)
+      expect(source, file).not.toMatch(/\bsessionStorage\b/)
+      expect(source, file).not.toMatch(/\bindexedDB\b/)
+      expect(source, file).not.toMatch(/document\.cookie/)
     }
   })
 })

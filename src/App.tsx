@@ -1,54 +1,35 @@
-import { useState } from 'react'
-import { DISTRICTS } from './data/psh'
-import { defaultInputs } from './engine/defaults'
+import { useEffect, useMemo, useReducer } from 'react'
 import { sizeSystem } from './engine/sizeSystem'
-import type { SystemType } from './engine/types'
-import { DesignDump } from './ui/DesignDump'
+import { initialState, reducer } from './state/appState'
+import { decodeInputs, encodeInputs } from './state/url'
+import { ErrorBoundary } from './ui/ErrorBoundary'
+import { Results } from './ui/results/Results'
+import { Wizard } from './ui/wizard/Wizard'
 
 export function App() {
-  const [systemType, setSystemType] = useState<SystemType>('hybrid')
-  const [districtId, setDistrictId] = useState('colombo')
-  const [monthlyKwh, setMonthlyKwh] = useState(250)
+  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(decodeInputs(window.location.search)))
 
-  const design = sizeSystem({
-    ...defaultInputs(systemType, districtId),
-    load: { mode: 'bill', monthlyKwh, nightFraction: 0.6 },
-  })
+  const design = useMemo(() => sizeSystem(state.inputs), [state.inputs])
+
+  // replaceState, not pushState: the back button must not become an undo stack.
+  useEffect(() => {
+    window.history.replaceState(null, '', `?${encodeInputs(state.inputs)}`)
+  }, [state.inputs])
 
   return (
     <main>
-      <h1>Solar System Calculator</h1>
-      <p>Phase 1 engine check. The real interface arrives in Phase 2.</p>
+      <header>
+        <h1>Solar system calculator</h1>
+        <p>Work out what size solar system you need, and understand why.</p>
+      </header>
 
-      <label>
-        System type{' '}
-        <select value={systemType} onChange={(e) => setSystemType(e.target.value as SystemType)}>
-          <option value="off-grid">Off-grid</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="grid-tied">Grid-tied</option>
-        </select>
-      </label>
-
-      <label>
-        District{' '}
-        <select value={districtId} onChange={(e) => setDistrictId(e.target.value)}>
-          {DISTRICTS.map((d) => (
-            <option key={d.id} value={d.id}>{d.name}</option>
-          ))}
-        </select>
-      </label>
-
-      <label>
-        Monthly units{' '}
-        <input
-          type="number"
-          value={monthlyKwh}
-          min={0}
-          onChange={(e) => setMonthlyKwh(Math.max(0, Number(e.target.value)))}
-        />
-      </label>
-
-      <DesignDump design={design} />
+      <ErrorBoundary onReset={() => dispatch({ type: 'restart' })}>
+        {state.view === 'wizard' ? (
+          <Wizard state={state} dispatch={dispatch} />
+        ) : (
+          <Results design={design} state={state} dispatch={dispatch} />
+        )}
+      </ErrorBoundary>
     </main>
   )
 }
