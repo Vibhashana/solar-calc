@@ -90,7 +90,11 @@ describe('round trip', () => {
     const random = makeRandom(20260908)
     for (let i = 0; i < 200; i += 1) {
       const inputs = generateInputs(random, i)
-      expect(decodeInputs(encodeInputs(inputs)), `case ${i}`).toEqual(inputs)
+      // psh=0 is not a valid override (the only control that writes it clamps to
+      // 1..8), so decodeInputs falls back to the district figure — pshOverride
+      // undefined — rather than round-tripping the 0 unchanged.
+      const expected = inputs.pshOverride === 0 ? { ...inputs, pshOverride: undefined } : inputs
+      expect(decodeInputs(encodeInputs(inputs)), `case ${i}`).toEqual(expected)
     }
     // Verify edge cases are actually generated
     expect(edgeCaseCounts.hoursPerDay0).toBeGreaterThan(0)
@@ -104,6 +108,16 @@ describe('round trip', () => {
     expect(encoded).not.toContain('{')
     expect(encoded).toContain('t=hybrid')
     expect(encoded).toContain('d=colombo')
+  })
+
+  it('round-trips a changed battery module', () => {
+    const inputs: SystemInputs = {
+      ...defaultInputs('off-grid', 'colombo'),
+      batteryModuleId: 'lfp-51v-200ah',
+    }
+    const encoded = encodeInputs(inputs)
+    expect(encoded).toContain('b=lfp-51v-200ah')
+    expect(decodeInputs(encoded)?.batteryModuleId).toBe('lfp-51v-200ah')
   })
 
   it('round-trips hoursPerDay: 0 correctly', () => {
@@ -215,6 +229,16 @@ describe('decoding is total', () => {
 
   it('rejects negative pshOverride and falls back to undefined', () => {
     const decoded = decodeInputs('t=hybrid&d=colombo&psh=-1.5')
+    expect(decoded).not.toBeNull()
+    expect(decoded?.pshOverride).toBeUndefined()
+  })
+
+  it('rejects a zero pshOverride and falls back to the district figure', () => {
+    // The only control that writes psh clamps to 1..8, so ?psh=0 is a
+    // hand-edited or hostile value. It must not survive as a real override —
+    // that would zero out the array — so it falls back to undefined, same as
+    // an absent psh.
+    const decoded = decodeInputs('t=hybrid&d=colombo&psh=0')
     expect(decoded).not.toBeNull()
     expect(decoded?.pshOverride).toBeUndefined()
   })

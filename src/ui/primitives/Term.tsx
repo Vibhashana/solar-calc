@@ -19,7 +19,7 @@ export function Term({ id, children }: TermProps) {
         type="button"
         className={styles.trigger}
         aria-expanded={open}
-        aria-controls={panelId}
+        aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((wasOpen) => !wasOpen)}
       >
         {children ?? entry.term}

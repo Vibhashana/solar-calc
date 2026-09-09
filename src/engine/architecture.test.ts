@@ -11,6 +11,16 @@ function sourceFiles(dir: string): string[] {
   })
 }
 
+/** Non-recursive: just the top-level files directly in `dir` (e.g. src/App.tsx). */
+function topLevelSourceFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name)
+    if (statSync(full).isDirectory()) return []
+    const isSource = (name.endsWith('.ts') || name.endsWith('.tsx')) && !name.endsWith('.test.ts') && !name.endsWith('.test.tsx')
+    return isSource ? [full] : []
+  })
+}
+
 describe('engine and data purity', () => {
   const files = [...sourceFiles('src/engine'), ...sourceFiles('src/data')]
 
@@ -55,7 +65,13 @@ describe('state layer boundaries', () => {
 
 describe('storage', () => {
   it('keeps the URL as the only persistence', () => {
-    const files = [...sourceFiles('src/engine'), ...sourceFiles('src/data'), ...sourceFiles('src/state'), ...sourceFiles('src/ui')]
+    const files = [
+      ...topLevelSourceFiles('src'),
+      ...sourceFiles('src/engine'),
+      ...sourceFiles('src/data'),
+      ...sourceFiles('src/state'),
+      ...sourceFiles('src/ui'),
+    ]
     for (const file of files) {
       const source = readFileSync(file, 'utf8')
       expect(source, file).not.toMatch(/\blocalStorage\b/)

@@ -42,6 +42,17 @@ function numNonNegative(raw: string | null): number | undefined {
   return value !== undefined && value >= 0 ? value : undefined
 }
 
+/**
+ * Parse a strictly positive number, or return undefined. Sun hours cannot be
+ * zero or negative — the only control that writes `psh` clamps to 1..8 — so
+ * a hostile or hand-edited `?psh=0` must fall back to the district figure
+ * rather than producing a zero-panel design.
+ */
+function numPositive(raw: string | null): number | undefined {
+  const value = num(raw)
+  return value !== undefined && value > 0 ? value : undefined
+}
+
 export function encodeInputs(inputs: SystemInputs): string {
   const params = new URLSearchParams()
   params.set('t', inputs.systemType)
@@ -93,7 +104,7 @@ export function decodeInputs(query: string): SystemInputs | null {
   const panelId = params.get('p')
   const batteryModuleId = params.get('b')
   const autonomy = numNonNegative(params.get('a'))
-  const psh = numNonNegative(params.get('psh'))
+  const psh = numPositive(params.get('psh'))
   const nightFraction = num(params.get('nf'))
   const monthlyKwh = numNonNegative(params.get('kwh'))
 

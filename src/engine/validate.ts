@@ -6,6 +6,15 @@ import type { SystemDesign, Warning } from './types'
 export function validateDesign(design: SystemDesign): Warning[] {
   const warnings: Warning[] = []
 
+  if (design.load.dailyKwh.value === 0) {
+    warnings.push({
+      id: 'no-load',
+      severity: 'info',
+      message:
+        "You haven't said what you use electricity for yet, so there is nothing to size — no panels, no battery, no real inverter number. Enter your monthly units, or list your appliances, to get a design you can actually use.",
+    })
+  }
+
   if (design.load.isPeakEstimated) {
     warnings.push({
       id: 'estimated-peak',

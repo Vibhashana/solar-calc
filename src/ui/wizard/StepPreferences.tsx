@@ -1,4 +1,4 @@
-import { PANELS } from '../../data/components'
+import { BATTERY_MODULES, PANELS } from '../../data/components'
 import { NotSure } from '../primitives/NotSure'
 import { NumberField } from '../primitives/NumberField'
 import { SelectField } from '../primitives/SelectField'
@@ -48,6 +48,23 @@ export function StepPreferences({ state, dispatch }: StepProps) {
         Panel size changes how many you need, not how much solar you get — six 450 W panels and five 550 W
         panels produce nearly the same. Pick whatever your local supplier actually stocks.
       </NotSure>
+
+      {hasBattery && (
+        <>
+          <SelectField
+            id="battery-module"
+            label="What battery can you buy locally?"
+            value={state.inputs.batteryModuleId}
+            hint="Batteries come in a few standard voltages. Pick what your supplier sells; the tool works out how many you need."
+            options={BATTERY_MODULES.map((module) => ({ value: module.id, label: module.name }))}
+            onChange={(batteryModuleId) => dispatch({ type: 'setBatteryModule', batteryModuleId })}
+          />
+          <NotSure>
+            These are <Term id="lifepo4" /> battery modules, sold in fixed sizes. Any of them works — the tool
+            wires as many together as your system needs. Just pick the one you can actually buy.
+          </NotSure>
+        </>
+      )}
     </>
   )
 }

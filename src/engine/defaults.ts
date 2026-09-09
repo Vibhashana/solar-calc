@@ -30,7 +30,7 @@ export const DEFAULTS = {
   /** Grid-tied DC:AC overbuild. */
   gridTiedDcAcRatio: 1.15,
   defaultPanelId: 'generic-550',
-  defaultBatteryModuleId: 'lfp-51v-100ah',
+  defaultBatteryModuleId: 'lfp-12v-100ah',
   /** Coolest morning in the Sri Lankan lowlands; hill country is colder. */
   minAmbientC: 18,
 } as const

@@ -96,6 +96,19 @@ describe('StepUsage', () => {
     expect(screen.getByText(/at any one moment/i)).toBeDefined()
   })
 
+  it('tells the user what to do when nothing is listed yet', () => {
+    render(<Harness />)
+    clickRadio(/list my appliances/)
+    expect(screen.getByText(/nothing to size/i)).toBeDefined()
+  })
+
+  it('carries the help disclosure on both the bill and appliance paths', () => {
+    render(<Harness />)
+    expect(screen.getByText('Not sure?')).toBeDefined()
+    clickRadio(/list my appliances/)
+    expect(screen.getByText('Not sure?')).toBeDefined()
+  })
+
   it('does not carry a stale clamp note into a row that slides into a reused list key', () => {
     render(<Harness />)
     clickRadio(/list my appliances/)

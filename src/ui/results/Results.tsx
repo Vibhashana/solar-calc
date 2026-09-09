@@ -53,10 +53,17 @@ export function Results({ design, state, dispatch }: ResultsProps) {
             figure={formatFigure(inverter.continuousW.value)}
             unit="W"
             sentence={
-              <>
-                It also has to survive a {formatFigure(inverter.surgeRequiredW.value)} W <Term id="surge" /> when
-                motors start.
-              </>
+              inverter.surgeRequiredW.value > 0 ? (
+                <>
+                  It also has to survive a {formatFigure(inverter.surgeRequiredW.value)} W <Term id="surge" /> when
+                  motors start.
+                </>
+              ) : (
+                <>
+                  It does not need to survive a <Term id="surge" /> — the grid starts your motors, not the
+                  inverter.
+                </>
+              )
             }
             field={inverter.continuousW}
           />

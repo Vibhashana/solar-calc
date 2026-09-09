@@ -44,7 +44,6 @@ body {
 
 /* Every figure on the page is a number the user compares against another
    number, so digits must not shift width between renders. */
-.figure,
 output,
 td,
 input[type='number'] {

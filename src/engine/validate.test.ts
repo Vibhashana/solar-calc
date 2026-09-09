@@ -80,6 +80,21 @@ describe('validateDesign', () => {
     expect(ids(inputs)).not.toContain('battery-voltage-mismatch')
   })
 
+  it('flags a design with zero daily load as info, not a real answer', () => {
+    const inputs: SystemInputs = {
+      ...defaultInputs('off-grid', 'colombo'),
+      load: { mode: 'bill', monthlyKwh: 0, nightFraction: 0.6 },
+    }
+    const warnings = validateDesign(sizeSystem(inputs))
+    const noLoad = warnings.find((w) => w.id === 'no-load')
+    expect(noLoad).toBeDefined()
+    expect(noLoad?.severity).toBe('info')
+  })
+
+  it('does not flag zero load when appliances or a bill were actually entered', () => {
+    expect(ids(defaultInputs('off-grid', 'colombo'))).not.toContain('no-load')
+  })
+
   it('produces no battery warnings for grid-tied systems', () => {
     const list = ids(defaultInputs('grid-tied', 'colombo'))
     expect(list).not.toContain('slow-recharge')

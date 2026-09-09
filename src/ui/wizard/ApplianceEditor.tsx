@@ -42,7 +42,10 @@ export function ApplianceEditor({ state, dispatch }: StepProps) {
       </div>
 
       {entries.length === 0 && (
-        <p className={styles.empty}>Nothing listed yet. Add the things you cannot do without first.</p>
+        <p className={styles.empty}>
+          Nothing listed yet, so there is nothing to size — no panels, no battery. Pick an appliance above and add
+          it, starting with whatever you cannot do without: lights, a fan, the fridge.
+        </p>
       )}
 
       <ul className={styles.rows}>

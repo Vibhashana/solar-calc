@@ -57,7 +57,14 @@ export function StepUsage({ state, dispatch }: StepProps) {
           </NotSure>
         </>
       ) : (
-        <ApplianceEditor state={state} dispatch={dispatch} />
+        <>
+          <ApplianceEditor state={state} dispatch={dispatch} />
+          <NotSure>
+            List only what you actually use — lights, fans, the fridge, a water pump. Guess at the hours if you
+            are not sure; you can always come back and change it. Leaving something out just means the design
+            will not cover it.
+          </NotSure>
+        </>
       )}
     </>
   )

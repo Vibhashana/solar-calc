@@ -3,7 +3,7 @@ import { DEFAULTS, defaultInputs } from '../engine/defaults'
 import type { ApplianceEntry, SystemInputs, SystemType } from '../engine/types'
 
 export type View = 'wizard' | 'results'
-export type TouchedField = 'autonomyDays' | 'panelId'
+export type TouchedField = 'autonomyDays' | 'panelId' | 'batteryModuleId'
 
 export const WIZARD_STEP_COUNT = 4
 
@@ -26,6 +26,7 @@ export type Action =
   | { type: 'removeAppliance'; index: number }
   | { type: 'setAutonomyDays'; days: number }
   | { type: 'setPanel'; panelId: string }
+  | { type: 'setBatteryModule'; batteryModuleId: string }
   | { type: 'next' }
   | { type: 'back' }
   | { type: 'restart' }
@@ -46,6 +47,7 @@ export function initialState(restored?: SystemInputs | null): AppState {
   const touched: TouchedField[] = []
   if (restored.autonomyDays !== defaults.autonomyDays) touched.push('autonomyDays')
   if (restored.panelId !== defaults.panelId) touched.push('panelId')
+  if (restored.batteryModuleId !== defaults.batteryModuleId) touched.push('batteryModuleId')
   return { view: 'results', step: WIZARD_STEP_COUNT - 1, inputs: restored, touched }
 }
 
@@ -129,6 +131,12 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'setPanel':
       return { ...withInputs(state, { ...state.inputs, panelId: action.panelId }), touched: touch(state, 'panelId') }
+
+    case 'setBatteryModule':
+      return {
+        ...withInputs(state, { ...state.inputs, batteryModuleId: action.batteryModuleId }),
+        touched: touch(state, 'batteryModuleId'),
+      }
 
     case 'next':
       if (state.step >= WIZARD_STEP_COUNT - 1) return { ...state, view: 'results' }

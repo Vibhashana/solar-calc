@@ -54,4 +54,11 @@ describe('Results', () => {
     render(<Harness systemType="hybrid" />)
     expect(screen.getByText('Show me the maths')).toBeDefined()
   })
+
+  it('does not claim a 0 W surge for a grid-tied inverter', () => {
+    render(<Harness systemType="grid-tied" />)
+    const inverter = screen.getByRole('heading', { name: 'Inverter' }).closest('article')
+    expect(inverter?.textContent).not.toMatch(/\b0 W\b/)
+    expect(inverter?.textContent).toMatch(/does not need to survive/)
+  })
 })

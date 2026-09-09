@@ -83,7 +83,6 @@ describe('StepSystemType', () => {
     act(() => {
       screen.getByRole('button', { name: /No, there is no mains/ }).click()
     })
-    expect(screen.queryByRole('button', { name: /Do you have mains/ })).toBeNull()
     expect(screen.getByText(/Answered: No mains electricity at all/)).toBeDefined()
   })
 

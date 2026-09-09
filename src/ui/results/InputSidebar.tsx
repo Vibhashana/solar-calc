@@ -1,8 +1,9 @@
 import type { Dispatch } from 'react'
-import { PANELS } from '../../data/components'
+import { BATTERY_MODULES, PANELS } from '../../data/components'
 import { DISTRICTS } from '../../data/psh'
 import type { SystemType } from '../../engine/types'
 import type { Action, AppState } from '../../state/appState'
+import { formatFigure } from '../format'
 import { ChoiceList } from '../primitives/ChoiceList'
 import { NumberField } from '../primitives/NumberField'
 import { SelectField } from '../primitives/SelectField'
@@ -39,6 +40,22 @@ export function InputSidebar({ state, dispatch }: { state: AppState; dispatch: D
         options={DISTRICTS.map((d) => ({ value: d.id, label: d.name }))}
         onChange={(districtId) => dispatch({ type: 'setDistrict', districtId })}
       />
+
+      {inputs.pshOverride !== undefined && (
+        <div className={styles.overrideNotice}>
+          <p className={styles.overrideText}>
+            Using your own figure of {formatFigure(inputs.pshOverride)} sun hours a day — District will not
+            change this.
+          </p>
+          <button
+            type="button"
+            className={styles.secondary}
+            onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}
+          >
+            Use the district figure instead
+          </button>
+        </div>
+      )}
 
       <ChoiceList
         legend="Usage"
@@ -88,6 +105,17 @@ export function InputSidebar({ state, dispatch }: { state: AppState; dispatch: D
         options={PANELS.map((panel) => ({ value: panel.id, label: panel.name }))}
         onChange={(panelId) => dispatch({ type: 'setPanel', panelId })}
       />
+
+      {inputs.systemType !== 'grid-tied' && (
+        <SelectField
+          id="sidebar-battery"
+          label="Battery"
+          size="compact"
+          value={inputs.batteryModuleId}
+          options={BATTERY_MODULES.map((module) => ({ value: module.id, label: module.name }))}
+          onChange={(batteryModuleId) => dispatch({ type: 'setBatteryModule', batteryModuleId })}
+        />
+      )}
     </aside>
   )
 }
