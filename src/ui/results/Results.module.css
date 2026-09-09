@@ -1,4 +1,6 @@
 .layout {
+  display: grid;
+  gap: var(--space-4);
   max-width: 68rem;
   margin: 0 auto;
   padding: var(--space-4) var(--space-3) var(--space-5);
@@ -6,6 +8,20 @@
 
 .main {
   min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+
+  .main {
+    grid-column: 1;
+  }
+
+  .layout > aside {
+    grid-column: 2;
+  }
 }
 
 .heading {

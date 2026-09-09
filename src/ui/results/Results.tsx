@@ -3,6 +3,7 @@ import type { SystemDesign } from '../../engine/types'
 import type { Action, AppState } from '../../state/appState'
 import { formatFigure } from '../format'
 import { Term } from '../primitives/Term'
+import { InputSidebar } from './InputSidebar'
 import { ShowTheMaths } from './ShowTheMaths'
 import { SystemCard } from './SystemCard'
 import { Warnings } from './Warnings'
@@ -14,11 +15,12 @@ interface ResultsProps {
   dispatch: Dispatch<Action>
 }
 
-export function Results({ design }: ResultsProps) {
+export function Results({ design, state, dispatch }: ResultsProps) {
   const { array, inverter, battery, controller, busVoltage } = design
 
   return (
     <div className={styles.layout}>
+      <InputSidebar state={state} dispatch={dispatch} />
       <div className={styles.main}>
         <h2 className={styles.heading}>Your system</h2>
 
