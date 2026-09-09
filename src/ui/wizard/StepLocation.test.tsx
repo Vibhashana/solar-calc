@@ -1,16 +1,17 @@
 import { act, useReducer } from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import type { SystemType } from '../../engine/types'
 import { initialState, reducer } from '../../state/appState'
 import { StepLocation } from './StepLocation'
 
-function Harness({ systemType = 'hybrid' }: { systemType?: string } = {}) {
+function Harness({ systemType = 'hybrid' }: { systemType?: SystemType } = {}) {
   const [state, dispatch] = useReducer(
     reducer,
     { systemType, districtId: 'colombo' },
     (init) => {
       const s = initialState()
-      return { ...s, inputs: { ...s.inputs, systemType: init.systemType as any, districtId: init.districtId } }
+      return { ...s, inputs: { ...s.inputs, systemType: init.systemType, districtId: init.districtId } }
     },
   )
   return (

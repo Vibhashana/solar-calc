@@ -24,9 +24,37 @@ export function StepLocation({ state, dispatch }: StepProps) {
       />
 
       {resolved !== undefined && (
-        <p className={styles.resolved}>
-          <strong>{formatFigure(resolved.value)}</strong> <Term id="peak-sun-hours" />. {resolved.explain.plain}
-        </p>
+        <>
+          <p className={styles.resolved}>
+            <strong>{formatFigure(resolved.value)}</strong> <Term id="peak-sun-hours" />. {resolved.explain.plain}
+          </p>
+
+          <details className={styles.override}>
+            <summary>Somewhere else, or you have your own figure?</summary>
+            <div>
+              <NumberField
+                id="psh-override"
+                label="Peak sun hours per day"
+                value={state.inputs.pshOverride ?? resolved.value}
+                min={1}
+                max={8}
+                step={0.1}
+                unit="kWh/m² per day"
+                hint="Use this only if you have a figure for your own site. Leave it alone otherwise."
+                onChange={(psh) => dispatch({ type: 'setPshOverride', psh })}
+              />
+              {state.inputs.pshOverride !== undefined && (
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}
+                >
+                  Use the district figure instead
+                </button>
+              )}
+            </div>
+          </details>
+        </>
       )}
 
       <p className={styles.provenance}>
@@ -37,32 +65,6 @@ export function StepLocation({ state, dispatch }: StepProps) {
         Pick the district you will install the panels in, not the one you post letters to. If you are between
         two, choose the one with less sun — a system sized for the duller place still works in the brighter one.
       </NotSure>
-
-      <details className={styles.override}>
-        <summary>Somewhere else, or you have your own figure?</summary>
-        <div>
-          <NumberField
-            id="psh-override"
-            label="Peak sun hours per day"
-            value={state.inputs.pshOverride ?? resolved?.value ?? 4.5}
-            min={1}
-            max={8}
-            step={0.1}
-            unit="kWh/m² per day"
-            hint="Use this only if you have a figure for your own site. Leave it alone otherwise."
-            onChange={(psh) => dispatch({ type: 'setPshOverride', psh })}
-          />
-          {state.inputs.pshOverride !== undefined && (
-            <button
-              type="button"
-              className={styles.secondary}
-              onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}
-            >
-              Use the district figure instead
-            </button>
-          )}
-        </div>
-      </details>
     </>
   )
 }
