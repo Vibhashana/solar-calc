@@ -4,8 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { initialState, reducer } from '../../state/appState'
 import { StepLocation } from './StepLocation'
 
-function Harness() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState())
+function Harness({ systemType = 'hybrid' }: { systemType?: string } = {}) {
+  const [state, dispatch] = useReducer(
+    reducer,
+    { systemType, districtId: 'colombo' },
+    (init) => {
+      const s = initialState()
+      return { ...s, inputs: { ...s.inputs, systemType: init.systemType as any, districtId: init.districtId } }
+    },
+  )
   return (
     <>
       <StepLocation state={state} dispatch={dispatch} />
@@ -24,6 +31,15 @@ function selectDistrict(value: string) {
   })
 }
 
+function setOverride(value: string) {
+  const input = document.getElementById('psh-override') as HTMLInputElement
+  act(() => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+    setter?.call(input, value)
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+}
+
 describe('StepLocation', () => {
   it('lists districts and records the choice', () => {
     render(<Harness />)
@@ -34,7 +50,7 @@ describe('StepLocation', () => {
   it('shows the worst-month sun hours the district resolves to', () => {
     render(<Harness />)
     // Colombo's worst month is 4.95 kWh/m2/day in the committed table.
-    expect(screen.getByText(/4\.95/)).toBeDefined()
+    expect(screen.getAllByText(/4\.95/).length).toBeGreaterThan(0)
   })
 
   it('names where the sun figures came from', () => {
@@ -50,5 +66,26 @@ describe('StepLocation', () => {
   it('carries the help disclosure every screen must have', () => {
     render(<Harness />)
     expect(screen.getByText('Not sure?')).toBeDefined()
+  })
+
+  it('entering an override changes the headline figure to the user value', () => {
+    render(<Harness />)
+    // Initially shows Colombo worst month 4.95
+    expect(screen.getAllByText(/4\.95/).length).toBeGreaterThan(0)
+    // Enter a different value in the override field
+    setOverride('6.5')
+    // Now should show the user's figure and the override attribution
+    expect(screen.getAllByText(/6\.5/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Using your own figure/)).toBeDefined()
+  })
+
+  it('a grid-tied system shows its annual-mean figure, not worst-month', () => {
+    render(<Harness systemType="grid-tied" />)
+    selectDistrict('vavuniya')
+    // Vavuniya's worst month is 3.95, annual mean is about 5.3
+    // Grid-tied systems show the annual mean, not worst-month
+    expect(screen.getByText(/averages about/)).toBeDefined()
+    // Should not show the worst month value
+    expect(screen.queryByText(/3\.95/)).toBeNull()
   })
 })

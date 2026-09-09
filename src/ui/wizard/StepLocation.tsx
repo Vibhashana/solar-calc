@@ -1,4 +1,5 @@
-import { DISTRICTS, PSH_SOURCE, findDistrict, worstMonthPsh } from '../../data/psh'
+import { DISTRICTS, PSH_SOURCE, findDistrict } from '../../data/psh'
+import { resolveDesignPsh } from '../../engine/solar'
 import { formatFigure } from '../format'
 import { NotSure } from '../primitives/NotSure'
 import { NumberField } from '../primitives/NumberField'
@@ -9,7 +10,7 @@ import styles from './Wizard.module.css'
 
 export function StepLocation({ state, dispatch }: StepProps) {
   const district = findDistrict(state.inputs.districtId)
-  const worst = district ? worstMonthPsh(district) : undefined
+  const resolved = district ? resolveDesignPsh(state.inputs.systemType, district, state.inputs.pshOverride) : undefined
 
   return (
     <>
@@ -22,11 +23,9 @@ export function StepLocation({ state, dispatch }: StepProps) {
         onChange={(districtId) => dispatch({ type: 'setDistrict', districtId })}
       />
 
-      {worst !== undefined && (
+      {resolved !== undefined && (
         <p className={styles.resolved}>
-          In its dullest month, {district?.name} gets about{' '}
-          <strong>{formatFigure(worst)}</strong> <Term id="peak-sun-hours" />. Off-grid and hybrid systems are
-          sized for that month, so they still work in the worst part of the year.
+          <strong>{formatFigure(resolved.value)}</strong> <Term id="peak-sun-hours" />. {resolved.explain.plain}
         </p>
       )}
 
@@ -45,7 +44,7 @@ export function StepLocation({ state, dispatch }: StepProps) {
           <NumberField
             id="psh-override"
             label="Peak sun hours per day"
-            value={state.inputs.pshOverride ?? worst ?? 4.5}
+            value={state.inputs.pshOverride ?? resolved?.value ?? 4.5}
             min={1}
             max={8}
             step={0.1}
