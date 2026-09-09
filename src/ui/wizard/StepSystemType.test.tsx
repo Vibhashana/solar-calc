@@ -74,4 +74,30 @@ describe('StepSystemType', () => {
     })
     expect(screen.getByText('Chosen: grid-tied')).toBeDefined()
   })
+
+  it('shows a confirmation after answering the not-sure path', () => {
+    render(<Harness />)
+    act(() => {
+      screen.getByText('Not sure?').click()
+    })
+    act(() => {
+      screen.getByRole('button', { name: /No, there is no mains/ }).click()
+    })
+    expect(screen.queryByRole('button', { name: /Do you have mains/ })).toBeNull()
+    expect(screen.getByText(/Answered: No mains electricity at all/)).toBeDefined()
+  })
+
+  it('allows redoing the not-sure path from the confirmation', () => {
+    render(<Harness />)
+    act(() => {
+      screen.getByText('Not sure?').click()
+    })
+    act(() => {
+      screen.getByRole('button', { name: /No, there is no mains/ }).click()
+    })
+    act(() => {
+      screen.getByRole('button', { name: /Answer these again/ }).click()
+    })
+    expect(screen.getByRole('button', { name: /Yes, I have mains/ })).toBeDefined()
+  })
 })

@@ -24,12 +24,14 @@ const CHOICES: { value: SystemType; label: string; description: string }[] = [
 ]
 
 export function StepSystemType({ state, dispatch }: StepProps) {
-  const [asking, setAsking] = useState<'mains' | 'cuts' | null>(null)
+  const [asking, setAsking] = useState<'mains' | 'cuts' | 'answered'>('mains')
 
   function choose(systemType: SystemType) {
     dispatch({ type: 'setSystemType', systemType })
-    setAsking(null)
+    setAsking('answered')
   }
+
+  const chosenLabel = CHOICES.find((choice) => choice.value === state.inputs.systemType)?.label
 
   return (
     <>
@@ -42,7 +44,7 @@ export function StepSystemType({ state, dispatch }: StepProps) {
 
       <NotSure>
         <p>Two questions will settle it.</p>
-        {asking === null && (
+        {asking === 'mains' && (
           <div className={styles.branch}>
             <p>Do you have mains electricity at this place?</p>
             <button type="button" className={styles.secondary} onClick={() => setAsking('cuts')}>
@@ -62,6 +64,15 @@ export function StepSystemType({ state, dispatch }: StepProps) {
             </button>
             <button type="button" className={styles.secondary} onClick={() => choose('grid-tied')}>
               No, it is reliable
+            </button>
+          </div>
+        )}
+
+        {asking === 'answered' && (
+          <div className={styles.branch}>
+            <p>Answered: {chosenLabel}</p>
+            <button type="button" className={styles.secondary} onClick={() => setAsking('mains')}>
+              Answer these again
             </button>
           </div>
         )}
