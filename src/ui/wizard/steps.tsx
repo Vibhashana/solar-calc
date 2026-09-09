@@ -3,6 +3,7 @@ import type { Action, AppState } from '../../state/appState'
 import { StepSystemType } from './StepSystemType'
 import { StepLocation } from './StepLocation'
 import { StepUsage } from './StepUsage'
+import { StepPreferences } from './StepPreferences'
 
 export interface StepProps {
   state: AppState
@@ -21,5 +22,5 @@ export const STEPS: StepDefinition[] = [
   { id: 'system-type', title: 'What are you building?', Component: StepSystemType },
   { id: 'location', title: 'Where are you?', Component: StepLocation },
   { id: 'usage', title: 'Your usage', Component: StepUsage },
-  { id: 'preferences', title: 'Preferences', Component: () => <p /> },
+  { id: 'preferences', title: 'Preferences', Component: StepPreferences },
 ]
