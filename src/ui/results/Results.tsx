@@ -3,7 +3,9 @@ import type { SystemDesign } from '../../engine/types'
 import type { Action, AppState } from '../../state/appState'
 import { formatFigure } from '../format'
 import { Term } from '../primitives/Term'
+import { ShowTheMaths } from './ShowTheMaths'
 import { SystemCard } from './SystemCard'
+import { Warnings } from './Warnings'
 import styles from './Results.module.css'
 
 interface ResultsProps {
@@ -72,6 +74,9 @@ export function Results({ design }: ResultsProps) {
             />
           )}
         </div>
+
+        <Warnings warnings={design.warnings} />
+        <ShowTheMaths design={design} />
       </div>
     </div>
   )

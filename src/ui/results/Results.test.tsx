@@ -43,4 +43,15 @@ describe('Results', () => {
     const panels = screen.getByRole('heading', { name: 'Panels' }).closest('article')
     expect(panels?.textContent).toMatch(/\d/)
   })
+
+  it('shows the warnings the engine produced', () => {
+    render(<Harness systemType="hybrid" />)
+    // A bill-based design always carries the estimated-peak notice.
+    expect(screen.getByText(/rough estimate/i)).toBeDefined()
+  })
+
+  it('offers the full arithmetic', () => {
+    render(<Harness systemType="hybrid" />)
+    expect(screen.getByText('Show me the maths')).toBeDefined()
+  })
 })
