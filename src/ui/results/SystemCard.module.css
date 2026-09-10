@@ -1,0 +1,42 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.figure {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  margin: var(--space-1) 0 var(--space-2);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+}
+
+.value {
+  color: var(--color-accent);
+  font-size: var(--font-size-figure);
+  font-weight: 700;
+  /* Figures this large need the space closed up, or the digits drift apart. */
+  letter-spacing: -0.02em;
+}
+
+.unit {
+  color: var(--color-ink-quiet);
+}
+
+.sentence {
+  max-width: var(--measure);
+  margin: 0 0 auto;
+}

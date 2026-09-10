@@ -1,0 +1,67 @@
+import { DISTRICTS, PSH_SOURCE, findDistrict } from '../../data/psh'
+import { resolveDesignPsh } from '../../engine/solar'
+import { formatFigure } from '../format'
+import { Button } from '../primitives/Button'
+import { NotSure } from '../primitives/NotSure'
+import { NumberField } from '../primitives/NumberField'
+import { SelectField } from '../primitives/SelectField'
+import { Term } from '../primitives/Term'
+import type { StepProps } from './steps'
+import styles from './Wizard.module.css'
+
+export function StepLocation({ state, dispatch }: StepProps) {
+  const district = findDistrict(state.inputs.districtId)
+  const resolved = district ? resolveDesignPsh(state.inputs.systemType, district, state.inputs.pshOverride) : undefined
+
+  return (
+    <>
+      <SelectField
+        id="district"
+        label="Which district are you in?"
+        value={state.inputs.districtId}
+        hint="Sunshine varies across the island. The district sets how much sun the panels can expect."
+        options={DISTRICTS.map((d) => ({ value: d.id, label: d.name }))}
+        onChange={(districtId) => dispatch({ type: 'setDistrict', districtId })}
+      />
+
+      {resolved !== undefined && (
+        <>
+          <p className={styles.resolved}>
+            <strong>{formatFigure(resolved.value)}</strong> <Term id="peak-sun-hours" />. {resolved.explain.plain}
+          </p>
+
+          <details className={styles.override}>
+            <summary>Somewhere else, or you have your own figure?</summary>
+            <div>
+              <NumberField
+                id="psh-override"
+                label="Peak sun hours per day"
+                value={state.inputs.pshOverride ?? resolved.value}
+                min={1}
+                max={8}
+                step={0.1}
+                unit="kWh/m² per day"
+                hint="Use this only if you have a figure for your own site. Leave it alone otherwise."
+                onChange={(psh) => dispatch({ type: 'setPshOverride', psh })}
+              />
+              {state.inputs.pshOverride !== undefined && (
+                <Button size="sm" onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}>
+                  Use the district figure instead
+                </Button>
+              )}
+            </div>
+          </details>
+        </>
+      )}
+
+      <p className={styles.provenance}>
+        Sun figures from {PSH_SOURCE.name}, retrieved {PSH_SOURCE.fetchedOn}.
+      </p>
+
+      <NotSure>
+        Pick the district you will install the panels in, not the one you post letters to. If you are between
+        two, choose the one with less sun — a system sized for the duller place still works in the brighter one.
+      </NotSure>
+    </>
+  )
+}

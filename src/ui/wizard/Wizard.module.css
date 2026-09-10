@@ -1,0 +1,103 @@
+/* src/ui/wizard/Wizard.module.css */
+.wizard {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3) var(--space-6);
+}
+
+/* Only the usage step, whose appliance rows are a table and need columns. */
+.wizardWide {
+  max-width: 56rem;
+}
+
+.progress {
+  margin-bottom: var(--space-4);
+}
+
+.progressText {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.ticks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tick {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-line);
+  transition: background-color var(--duration-slow) var(--ease-out);
+}
+
+.tickDone {
+  background: var(--color-accent-line);
+}
+
+.tickCurrent {
+  background: var(--color-accent);
+}
+
+.heading {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-heading);
+}
+
+.heading:focus {
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+/* Pushed right whether or not Back is there, so the primary action never moves
+   between steps. */
+.next {
+  margin-left: auto;
+}
+
+.branch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin-top: var(--space-2);
+}
+
+.resolved {
+  max-width: var(--measure);
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.provenance {
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+}
+
+.override {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.override > summary {
+  color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
+}

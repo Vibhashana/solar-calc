@@ -1,0 +1,245 @@
+.field {
+  margin: 0 0 var(--space-4);
+}
+
+.fieldCompact {
+  margin: 0 0 var(--space-3);
+}
+
+/* A field that is one cell of an appliance row. The column heading above the
+   grid carries the name once the row is wide enough to have columns, so the
+   label is hidden there and shown again when the row stacks. */
+.fieldRow {
+  min-width: 0;
+  margin: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.fieldRow > .label {
+  color: var(--color-ink-quiet);
+}
+
+/* Inside a wide appliance row the column heading names the field, so repeating
+   the label on all twenty rows would be noise. It stays in the DOM: it is still
+   what names the control to a screen reader, and it comes back the moment the
+   row stacks. The container is declared in ApplianceEditor.module.css. */
+@container appliance-rows (min-width: 44rem) {
+  .fieldRow > .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.hint {
+  margin: 0 0 var(--space-2);
+  max-width: var(--measure);
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.input,
+.select {
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-control-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--duration) var(--ease-out),
+    box-shadow var(--duration) var(--ease-out);
+}
+
+.input:hover:not(:disabled),
+.select:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.input:disabled,
+.select:disabled {
+  background: var(--color-sunken);
+  color: var(--color-ink-quiet);
+  cursor: not-allowed;
+}
+
+.input {
+  width: 8rem;
+}
+
+.fieldRow .input {
+  width: 100%;
+}
+
+/* The native spinners are 12px of unhittable target that also throw the
+   right-hand alignment of a column of figures. The keyboard arrows still work. */
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.input[type='number'] {
+  appearance: textfield;
+}
+
+.selectWrap {
+  position: relative;
+  display: block;
+  max-width: var(--measure);
+}
+
+.fieldRow .selectWrap {
+  max-width: none;
+}
+
+.select {
+  width: 100%;
+  padding-right: var(--space-5);
+  appearance: none;
+  cursor: pointer;
+}
+
+/* The chevron. Drawn rather than imported so it takes the ink colour of
+   whichever scheme is in force, with no second asset to load. */
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--color-ink-quiet);
+  border-bottom: 2px solid var(--color-ink-quiet);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.unit {
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+}
+
+.note {
+  margin: var(--space-1) 0 0;
+  color: var(--color-caution);
+  font-size: var(--font-size-small);
+}
+
+.choices,
+.choicesCompact {
+  display: grid;
+  gap: var(--space-2);
+  /* Capped even on a wide step: the descriptions are prose, and prose set to
+     the width of an appliance table is unreadable. */
+  max-width: var(--measure);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  border: 0;
+}
+
+.choicesCompact {
+  margin-bottom: var(--space-3);
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+
+.choice {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--duration) var(--ease-out),
+    background-color var(--duration) var(--ease-out);
+}
+
+/* Neutral, not accent: the accent tint means "this is your answer", and a
+   hover that borrowed it would make every card look chosen in turn. */
+.choice:hover {
+  border-color: var(--color-line-strong);
+  background: var(--color-sunken);
+}
+
+/* The selected card carries its state in the border and tint as well as the
+   radio, so the choice is legible at a glance and without relying on colour
+   alone — the border weight changes too. */
+.choiceSelected {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.choice > input {
+  margin: 0;
+  accent-color: var(--color-accent);
+  /* Optical, not metric: the radio reads as centred on the first line of the
+     label rather than sitting fractionally high against the cap height. */
+  translate: 0 0.15em;
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+.choiceLabel {
+  display: block;
+  font-weight: 600;
+}
+
+.choiceDescription {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink-quiet);
+  font-size: var(--font-size-small);
+}
+
+.notSure {
+  max-width: var(--measure);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--font-size-small);
+}
+
+.notSure > summary {
+  color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notSure[open] > summary {
+  margin-bottom: var(--space-2);
+}
+
+.notSureBody {
+  max-width: var(--measure);
+  color: var(--color-ink-quiet);
+}
