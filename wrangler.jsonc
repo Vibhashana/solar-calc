@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "solar-calc",
+  "compatibility_date": "2026-09-10",
+  "assets": {
+    "directory": "./dist",
+    // The app is a client-side SPA whose state lives in the URL, so any
+    // unmatched path must serve index.html rather than a 404.
+    "not_found_handling": "single-page-application"
+  }
+}

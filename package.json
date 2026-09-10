@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "fetch:psh": "tsx scripts/fetch-psh.ts"
+    "fetch:psh": "tsx scripts/fetch-psh.ts",
+    "deploy": "npm run build && wrangler deploy",
+    "preview:worker": "npm run build && wrangler dev"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -27,6 +29,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "5.4.x",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "wrangler": "^4.130.0"
   }
 }
