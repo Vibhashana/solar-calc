@@ -2,21 +2,53 @@
 .wizard {
   max-width: var(--measure);
   margin: 0 auto;
-  padding: var(--space-5) var(--space-3);
+  padding: var(--space-5) var(--space-3) var(--space-6);
+}
+
+/* Only the usage step, whose appliance rows are a table and need columns. */
+.wizardWide {
+  max-width: 56rem;
 }
 
 .progress {
-  margin: 0;
+  margin-bottom: var(--space-4);
+}
+
+.progressText {
+  margin: 0 0 var(--space-2);
   color: var(--color-ink-quiet);
   font-size: var(--font-size-small);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.ticks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tick {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-line);
+  transition: background-color var(--duration-slow) var(--ease-out);
+}
+
+.tickDone {
+  background: var(--color-accent-line);
+}
+
+.tickCurrent {
+  background: var(--color-accent);
 }
 
 .heading {
-  margin: var(--space-2) 0 var(--space-4);
+  margin: 0 0 var(--space-4);
   font-size: var(--font-size-heading);
-  line-height: 1.25;
 }
 
 .heading:focus {
@@ -26,26 +58,16 @@
 .actions {
   display: flex;
   gap: var(--space-3);
+  align-items: center;
   margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
 }
 
-.primary,
-.secondary {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-
-.primary {
-  border: 1px solid var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
-}
-
-.secondary {
-  border: 1px solid var(--color-line);
-  background: var(--color-surface);
-  color: var(--color-ink);
+/* Pushed right whether or not Back is there, so the primary action never moves
+   between steps. */
+.next {
+  margin-left: auto;
 }
 
 .branch {
@@ -59,7 +81,8 @@
 .resolved {
   max-width: var(--measure);
   padding: var(--space-3);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 
@@ -74,6 +97,7 @@
 }
 
 .override > summary {
-  cursor: pointer;
   color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
 }

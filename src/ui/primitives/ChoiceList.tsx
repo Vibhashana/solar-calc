@@ -21,7 +21,10 @@ export function ChoiceList<T extends string>({ legend, value, size = 'full', cho
     <fieldset className={size === 'compact' ? styles.choicesCompact : styles.choices}>
       <legend className={styles.legend}>{legend}</legend>
       {choices.map((choice) => (
-        <label key={choice.value} className={styles.choice}>
+        <label
+          key={choice.value}
+          className={choice.value === value ? `${styles.choice} ${styles.choiceSelected}` : styles.choice}
+        >
           <input
             type="radio"
             name={name}

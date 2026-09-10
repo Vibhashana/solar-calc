@@ -24,6 +24,47 @@ describe('computeLoadProfile — appliance path', () => {
     expect(profile.dayKwh.value).toBeCloseTo(1.0, 3)
   })
 
+  it('uses the watts on a row in place of the catalogue figure', () => {
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'lamp', quantity: 2, hoursPerDay: 5, usageWindow: 'night', watts: 20 }] },
+      1,
+      catalog,
+    )
+    // 2 x 20 x 5 = 200 Wh, not the catalogue's 2 x 100 x 5 = 1000 Wh
+    expect(profile.dailyKwh.value).toBeCloseTo(0.2, 3)
+    expect(profile.continuousPeakW.value).toBeCloseTo(40, 3)
+  })
+
+  it('scales surge with the watts on a row, not the catalogue watts', () => {
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'pump', quantity: 1, hoursPerDay: 1, usageWindow: 'day', watts: 500 }] },
+      1,
+      catalog,
+    )
+    // continuous 500 W, extra surge = 500 x (4 - 1) = 1500 W
+    expect(profile.continuousPeakW.value).toBeCloseTo(500, 3)
+    expect(profile.surgePeakW.value).toBeCloseTo(2000, 3)
+  })
+
+  it('falls back to the catalogue when a row carries no watts', () => {
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'lamp', quantity: 1, hoursPerDay: 1, usageWindow: 'night' }] },
+      1,
+      catalog,
+    )
+    expect(profile.continuousPeakW.value).toBeCloseTo(100, 3)
+  })
+
+  it('treats zero watts as a real answer rather than falling back', () => {
+    const profile = computeLoadProfile(
+      { mode: 'appliances', entries: [{ applianceId: 'lamp', quantity: 1, hoursPerDay: 5, usageWindow: 'night', watts: 0 }] },
+      1,
+      catalog,
+    )
+    expect(profile.dailyKwh.value).toBe(0)
+    expect(profile.continuousPeakW.value).toBe(0)
+  })
+
   it('splits a both-window appliance evenly', () => {
     const profile = computeLoadProfile(
       { mode: 'appliances', entries: [{ applianceId: 'lamp', quantity: 1, hoursPerDay: 10, usageWindow: 'both' }] },

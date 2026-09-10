@@ -1,8 +1,11 @@
 .card {
+  display: flex;
+  flex-direction: column;
   padding: var(--space-4);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .title {
@@ -10,20 +13,23 @@
   color: var(--color-ink-quiet);
   font-size: var(--font-size-small);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .figure {
-  margin: var(--space-2) 0 var(--space-2);
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  margin: var(--space-1) 0 var(--space-2);
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
+  line-height: var(--line-height-tight);
 }
 
 .value {
   color: var(--color-accent);
   font-size: var(--font-size-figure);
   font-weight: 700;
+  /* Figures this large need the space closed up, or the digits drift apart. */
+  letter-spacing: -0.02em;
 }
 
 .unit {
@@ -32,5 +38,5 @@
 
 .sentence {
   max-width: var(--measure);
-  margin: 0;
+  margin: 0 0 auto;
 }

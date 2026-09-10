@@ -8,17 +8,24 @@
   background: none;
   color: inherit;
   text-decoration: underline dotted;
+  text-decoration-color: var(--color-accent);
   text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
   cursor: help;
+  transition: color var(--duration) var(--ease-out);
 }
 
 .panel {
   display: block;
   margin: var(--space-2) 0;
-  padding: var(--space-3);
-  border-left: 3px solid var(--color-accent);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink-quiet);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-accent-line);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
   font-size: var(--font-size-small);
+}
+
+.trigger:hover {
+  color: var(--color-accent);
 }

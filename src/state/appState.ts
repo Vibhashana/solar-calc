@@ -1,6 +1,6 @@
-import { findAppliance } from '../data/appliances'
+import { APPLIANCES, findAppliance } from '../data/appliances'
 import { DEFAULTS, defaultInputs } from '../engine/defaults'
-import type { ApplianceEntry, SystemInputs, SystemType } from '../engine/types'
+import type { Appliance, ApplianceEntry, SystemInputs, SystemType } from '../engine/types'
 
 export type View = 'wizard' | 'results'
 export type TouchedField = 'autonomyDays' | 'panelId' | 'batteryModuleId'
@@ -21,12 +21,13 @@ export type Action =
   | { type: 'setLoadMode'; mode: 'bill' | 'appliances' }
   | { type: 'setBill'; monthlyKwh: number }
   | { type: 'setNightFraction'; fraction: number }
-  | { type: 'addAppliance'; applianceId: string }
+  | { type: 'addAppliance'; applianceId?: string }
+  | { type: 'setApplianceType'; index: number; applianceId: string }
   | { type: 'updateAppliance'; index: number; patch: Partial<ApplianceEntry> }
   | { type: 'removeAppliance'; index: number }
   | { type: 'setAutonomyDays'; days: number }
   | { type: 'setPanel'; panelId: string }
-  | { type: 'setBatteryModule'; batteryModuleId: string }
+  | { type: 'setBatteryModule'; batteryModuleId: string | undefined }
   | { type: 'next' }
   | { type: 'back' }
   | { type: 'restart' }
@@ -61,6 +62,20 @@ function withInputs(state: AppState, inputs: SystemInputs): AppState {
 
 function entriesOf(inputs: SystemInputs): ApplianceEntry[] | null {
   return inputs.load.mode === 'appliances' ? inputs.load.entries : null
+}
+
+/**
+ * A fresh row for an appliance. `watts` is deliberately absent rather than
+ * copied from the catalogue: the row shows the catalogue figure either way,
+ * and leaving it absent is what marks the wattage as still untouched.
+ */
+function seedEntry(appliance: Appliance): ApplianceEntry {
+  return {
+    applianceId: appliance.id,
+    quantity: 1,
+    hoursPerDay: appliance.defaultHoursPerDay,
+    usageWindow: appliance.defaultUsageWindow,
+  }
 }
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -98,15 +113,30 @@ export function reducer(state: AppState, action: Action): AppState {
 
     case 'addAppliance': {
       const entries = entriesOf(state.inputs)
-      const appliance = findAppliance(action.applianceId)
+      // The editor adds a blank row first and lets the user pick the appliance
+      // in the row itself, so the action carries no id in the normal case.
+      const appliance = findAppliance(action.applianceId ?? APPLIANCES[0]?.id ?? '')
       if (!entries || !appliance) return state
-      const entry: ApplianceEntry = {
-        applianceId: appliance.id,
-        quantity: 1,
-        hoursPerDay: appliance.defaultHoursPerDay,
-        usageWindow: appliance.defaultUsageWindow,
-      }
-      return withInputs(state, { ...state.inputs, load: { mode: 'appliances', entries: [...entries, entry] } })
+      return withInputs(state, {
+        ...state.inputs,
+        load: { mode: 'appliances', entries: [...entries, seedEntry(appliance)] },
+      })
+    }
+
+    case 'setApplianceType': {
+      const entries = entriesOf(state.inputs)
+      const current = entries?.[action.index]
+      const appliance = findAppliance(action.applianceId)
+      if (!entries || !current || !appliance) return state
+      if (appliance.id === current.applianceId) return state
+      // A different appliance means different typical hours, a different time
+      // of day and a different wattage, so the row is reseeded rather than
+      // left carrying a fan's eight hours against a kettle. Quantity survives:
+      // "three of them" is about the household, not the appliance.
+      const next = entries.map((entry, i) =>
+        i === action.index ? { ...seedEntry(appliance), quantity: entry.quantity } : entry,
+      )
+      return withInputs(state, { ...state.inputs, load: { mode: 'appliances', entries: next } })
     }
 
     case 'updateAppliance': {

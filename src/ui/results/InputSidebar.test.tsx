@@ -59,10 +59,31 @@ describe('the live sidebar', () => {
     expect(screen.queryByLabelText(/battery/i)).toBeNull()
   })
 
+  it('leaves the battery choice to the engine until the user makes one', () => {
+    render(<LiveHarness />)
+    const select = screen.getByLabelText(/battery/i) as HTMLSelectElement
+    expect(select.value).toBe('auto')
+  })
+
+  it('hands the choice back to the engine when the user picks automatic again', () => {
+    render(<LiveHarness />)
+    const select = screen.getByLabelText(/battery/i) as HTMLSelectElement
+    const set = (value: string) =>
+      act(() => {
+        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set?.call(select, value)
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+
+    set('lfp-51v-200ah')
+    expect(select.value).toBe('lfp-51v-200ah')
+    set('auto')
+    expect(select.value).toBe('auto')
+  })
+
   it('writes a battery module change into state', () => {
     render(<LiveHarness />)
     const select = screen.getByLabelText(/battery/i) as HTMLSelectElement
-    expect(select.value).toBe('lfp-12v-100ah')
+    expect(select.value).toBe('auto')
     act(() => {
       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set?.call(select, 'lfp-51v-200ah')
       select.dispatchEvent(new Event('change', { bubbles: true }))

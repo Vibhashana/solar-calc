@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { BATTERY_MODULES } from '../data/components'
+import { isVoltageCompatible } from './battery'
 import { sizeSystem } from './sizeSystem'
 import { defaultInputs } from './defaults'
 import { selectBusVoltage } from './voltage'
@@ -123,5 +125,101 @@ describe('degenerate input', () => {
     const design = sizeSystem(withBill(0))
     expect(design.array.panelCount.value).toBe(0)
     expect(Number.isFinite(design.battery?.nominalKwh.value ?? 0)).toBe(true)
+  })
+})
+
+describe('the battery module the engine chooses', () => {
+  const BILLS = [50, 100, 200, 400, 500, 800, 900, 1600, 3000]
+  const TYPES = ['off-grid', 'hybrid'] as const
+
+  const batteryWarnings = (design: ReturnType<typeof sizeSystem>) =>
+    design.warnings
+      .filter((w) => w.id === 'battery-voltage-mismatch' || w.id === 'charge-current-high')
+      .map((w) => w.id)
+
+  /**
+   * The real guarantee. Some designs warn whatever module is used — a hybrid
+   * with half a day of autonomy behind a 25 kW array is over the charge limit
+   * of every bank in the catalogue, and saying so is the point of the warning.
+   * What must never happen is the engine choosing a module that warns while a
+   * quiet one was available, because the user is no longer there to catch it.
+   */
+  it('never picks a module that warns when another module would not', () => {
+    const offenders: string[] = []
+
+    for (const systemType of TYPES) {
+      for (const monthlyKwh of BILLS) {
+        const inputs: SystemInputs = {
+          ...defaultInputs(systemType, 'colombo'),
+          load: { mode: 'bill', monthlyKwh, nightFraction: 0.6 },
+        }
+        const chosen = batteryWarnings(sizeSystem(inputs))
+        if (chosen.length === 0) continue
+
+        const quiet = BATTERY_MODULES.filter(
+          (module) => batteryWarnings(sizeSystem({ ...inputs, batteryModuleId: module.id })).length === 0,
+        )
+        if (quiet.length > 0) {
+          offenders.push(
+            `${systemType} at ${monthlyKwh} kWh warned (${chosen.join(', ')}) but ${quiet.map((m) => m.id).join(', ')} would not`,
+          )
+        }
+      }
+    }
+
+    expect(offenders).toEqual([])
+  })
+
+  it('leaves a warning standing when it is true of every module', () => {
+    // A hybrid bank holds half a day, so a very large array outruns what any
+    // battery in the catalogue will accept. That warning is correct.
+    const inputs: SystemInputs = {
+      ...defaultInputs('hybrid', 'colombo'),
+      load: { mode: 'bill', monthlyKwh: 3000, nightFraction: 0.6 },
+    }
+    expect(batteryWarnings(sizeSystem(inputs))).toContain('charge-current-high')
+    for (const module of BATTERY_MODULES) {
+      expect(batteryWarnings(sizeSystem({ ...inputs, batteryModuleId: module.id })), module.id).toContain(
+        'charge-current-high',
+      )
+    }
+  })
+
+  it('always reaches the system voltage it was chosen for', () => {
+    for (const systemType of TYPES) {
+      for (const monthlyKwh of BILLS) {
+        const design = sizeSystem({
+          ...defaultInputs(systemType, 'colombo'),
+          load: { mode: 'bill', monthlyKwh, nightFraction: 0.6 },
+        })
+        const label = `${systemType} at ${monthlyKwh} kWh`
+        expect(design.batteryModule, label).not.toBeNull()
+        if (design.batteryModule && design.busVoltage) {
+          expect(isVoltageCompatible(design.busVoltage.value, design.batteryModule), label).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('does not change how much battery the design needs', () => {
+    // The capacity comes from the load. Naming a module only repackages it,
+    // which is why the wizard no longer asks for one.
+    const base = { ...defaultInputs('off-grid', 'colombo'), load: { mode: 'bill', monthlyKwh: 400, nightFraction: 0.6 } } as SystemInputs
+    const automatic = sizeSystem(base).battery?.nominalKwh.value
+
+    for (const module of BATTERY_MODULES) {
+      const named = sizeSystem({ ...base, batteryModuleId: module.id }).battery?.nominalKwh.value
+      expect(named, module.id).toBeCloseTo(automatic ?? 0, 9)
+    }
+  })
+
+  it('honours a module the user named, even a badly matched one', () => {
+    const design = sizeSystem({
+      ...defaultInputs('hybrid', 'colombo'),
+      load: { mode: 'bill', monthlyKwh: 120, nightFraction: 0.6 },
+      batteryModuleId: 'lfp-51v-100ah',
+    })
+    expect(design.batteryModule?.id).toBe('lfp-51v-100ah')
+    expect(design.warnings.map((w) => w.id)).toContain('battery-voltage-mismatch')
   })
 })

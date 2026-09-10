@@ -62,6 +62,9 @@ function generateInputs(random: () => number, caseIndex: number): SystemInputs {
                   quantity: 1 + Math.floor(random() * 5),
                   hoursPerDay: Math.round(random() * 240) / 10,
                   usageWindow: pick(USAGE_WINDOWS, 'both'),
+                  // Half the generated lists carry a corrected wattage, so the
+                  // round trip is exercised both with and without the segment.
+                  ...(random() < 0.5 ? { watts: Math.round(random() * 3000) } : {}),
                 },
               ],
       }
@@ -174,6 +177,43 @@ describe('decoding is total', () => {
   it('survives a truncated appliance list without throwing', () => {
     expect(() => decodeInputs('t=off-grid&d=kandy&l=a&ap=led-bulb:4')).not.toThrow()
     expect(decodeInputs('t=off-grid&d=kandy&l=a&ap=led-bulb:4')?.load).toEqual({ mode: 'appliances', entries: [] })
+  })
+
+  it('round-trips a corrected wattage', () => {
+    const decoded = decodeInputs(
+      encodeInputs({
+        ...defaultInputs('off-grid', 'kandy'),
+        load: { mode: 'appliances', entries: [{ applianceId: 'led-bulb', quantity: 4, hoursPerDay: 5, usageWindow: 'night', watts: 12 }] },
+      }),
+    )
+    expect(decoded?.load).toEqual({
+      mode: 'appliances',
+      entries: [{ applianceId: 'led-bulb', quantity: 4, hoursPerDay: 5, usageWindow: 'night', watts: 12 }],
+    })
+  })
+
+  it('reads a link written before wattage could be corrected', () => {
+    const decoded = decodeInputs('t=off-grid&d=kandy&l=a&ap=led-bulb:4:5:night')
+    expect(decoded?.load).toEqual({
+      mode: 'appliances',
+      entries: [{ applianceId: 'led-bulb', quantity: 4, hoursPerDay: 5, usageWindow: 'night' }],
+    })
+    const entry = decoded?.load.mode === 'appliances' ? decoded.load.entries[0] : undefined
+    expect(entry && 'watts' in entry).toBe(false)
+  })
+
+  it('keeps a corrected wattage of zero rather than reverting to the catalogue', () => {
+    const decoded = decodeInputs('t=off-grid&d=kandy&l=a&ap=led-bulb:4:5:night:0')
+    const entry = decoded?.load.mode === 'appliances' ? decoded.load.entries[0] : undefined
+    expect(entry?.watts).toBe(0)
+  })
+
+  it('drops a row whose wattage segment is unreadable', () => {
+    const decoded = decodeInputs('t=off-grid&d=kandy&l=a&ap=led-bulb:4:5:night:abc,ceiling-fan:1:2:both:80')
+    expect(decoded?.load).toEqual({
+      mode: 'appliances',
+      entries: [{ applianceId: 'ceiling-fan', quantity: 1, hoursPerDay: 2, usageWindow: 'both', watts: 80 }],
+    })
   })
 
   it('never throws on hostile input', () => {

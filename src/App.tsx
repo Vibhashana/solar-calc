@@ -32,10 +32,12 @@ export function App() {
 
   return (
     <main>
-      <header className={styles.header}>
-        <h1>Solar system calculator</h1>
-        <p>Work out what size solar system you need, and understand why.</p>
-      </header>
+      <div className={styles.masthead}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Solar system calculator</h1>
+          <p className={styles.lede}>Work out what size solar system you need, and understand why.</p>
+        </header>
+      </div>
 
       {state.view === 'wizard' ? (
         <Wizard state={state} dispatch={dispatch} />

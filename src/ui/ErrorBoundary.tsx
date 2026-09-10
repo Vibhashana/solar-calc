@@ -1,4 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Button } from './primitives/Button'
+import styles from './ErrorBoundary.module.css'
 
 interface Props {
   children: ReactNode
@@ -25,18 +27,20 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.failed) return this.props.children
 
     return (
-      <section>
-        <h2>This tool could not work out a system from those answers.</h2>
-        <p>That is a fault in the tool, not in what you typed. Starting again with the usual answers should work.</p>
-        <button
-          type="button"
+      <section className={styles.panel}>
+        <h2 className={styles.heading}>This tool could not work out a system from those answers.</h2>
+        <p className={styles.body}>
+          That is a fault in the tool, not in what you typed. Starting again with the usual answers should work.
+        </p>
+        <Button
+          variant="primary"
           onClick={() => {
             this.setState({ failed: false })
             this.props.onReset()
           }}
         >
           Start over
-        </button>
+        </Button>
       </section>
     )
   }

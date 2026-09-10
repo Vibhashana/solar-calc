@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { WIZARD_STEP_COUNT } from '../../state/appState'
+import { Button } from '../primitives/Button'
 import { STEPS, type StepProps } from './steps'
 import styles from './Wizard.module.css'
 
@@ -19,10 +20,32 @@ export function Wizard({ state, dispatch }: StepProps) {
   const Step = step.Component
 
   return (
-    <section className={styles.wizard} aria-labelledby="wizard-heading">
-      <p className={styles.progress}>
-        Step {state.step + 1} of {WIZARD_STEP_COUNT}
-      </p>
+    <section
+      className={step.wide ? `${styles.wizard} ${styles.wizardWide}` : styles.wizard}
+      aria-labelledby="wizard-heading"
+    >
+      <div className={styles.progress}>
+        <p className={styles.progressText}>
+          Step {state.step + 1} of {WIZARD_STEP_COUNT} — {step.shortTitle}
+        </p>
+        {/* Decoration: the sentence above already says where the user is, and
+            reading four unlabelled bars out loud tells nobody anything. */}
+        <ol className={styles.ticks} aria-hidden="true">
+          {STEPS.map((definition, index) => (
+            <li
+              key={definition.id}
+              className={
+                index < state.step
+                  ? `${styles.tick} ${styles.tickDone}`
+                  : index === state.step
+                    ? `${styles.tick} ${styles.tickCurrent}`
+                    : styles.tick
+              }
+            />
+          ))}
+        </ol>
+      </div>
+
       <h2 id="wizard-heading" className={styles.heading} tabIndex={-1} ref={headingRef}>
         {step.title}
       </h2>
@@ -31,13 +54,13 @@ export function Wizard({ state, dispatch }: StepProps) {
 
       <div className={styles.actions}>
         {state.step > 0 && (
-          <button type="button" className={styles.secondary} onClick={() => dispatch({ type: 'back' })}>
+          <Button variant="secondary" onClick={() => dispatch({ type: 'back' })}>
             Back
-          </button>
+          </Button>
         )}
-        <button type="button" className={styles.primary} onClick={() => dispatch({ type: 'next' })}>
+        <Button variant="primary" className={styles.next} onClick={() => dispatch({ type: 'next' })}>
           {isLast ? 'See my system' : 'Next'}
-        </button>
+        </Button>
       </div>
     </section>
   )

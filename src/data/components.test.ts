@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BATTERY_MODULES, PANELS, findBatteryModule, findPanel } from './components'
+import { isVoltageCompatible } from '../engine/battery'
+import { BATTERY_MODULES, PANELS, findPanel } from './components'
 import { DEFAULTS } from '../engine/defaults'
 
 describe('PANELS', () => {
@@ -25,8 +26,11 @@ describe('PANELS', () => {
 })
 
 describe('BATTERY_MODULES', () => {
-  it('contains the default module', () => {
-    expect(findBatteryModule(DEFAULTS.defaultBatteryModuleId)).toBeDefined()
+  it('offers a module that reaches every system voltage the engine picks', () => {
+    for (const busVoltage of [12, 24, 48] as const) {
+      const fits = BATTERY_MODULES.filter((m) => isVoltageCompatible(busVoltage, m))
+      expect(fits.length, `${busVoltage} V`).toBeGreaterThan(0)
+    }
   })
 
   it('gives every module a positive capacity and charge rate', () => {

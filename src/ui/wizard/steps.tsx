@@ -13,14 +13,22 @@ export interface StepProps {
 export interface StepDefinition {
   id: string
   title: string
+  /** Short form for the progress strip, where the full title will not fit. */
+  shortTitle: string
+  /**
+   * True when the step needs more room than a column of prose. Only the usage
+   * step does: its appliance rows are a table, and a table squeezed into a
+   * reading measure is the layout this replaced.
+   */
+  wide?: boolean
   Component: (props: StepProps) => JSX.Element
 }
 
-// Tasks 8-11 replace each Component below with the real screen. The titles are
-// final: the Wizard renders them as the page heading and focus target.
+// The titles are final: the Wizard renders them as the page heading and focus
+// target.
 export const STEPS: StepDefinition[] = [
-  { id: 'system-type', title: 'What are you building?', Component: StepSystemType },
-  { id: 'location', title: 'Where are you?', Component: StepLocation },
-  { id: 'usage', title: 'Your usage', Component: StepUsage },
-  { id: 'preferences', title: 'Preferences', Component: StepPreferences },
+  { id: 'system-type', title: 'What are you building?', shortTitle: 'System', Component: StepSystemType },
+  { id: 'location', title: 'Where are you?', shortTitle: 'Location', Component: StepLocation },
+  { id: 'usage', title: 'Your usage', shortTitle: 'Usage', wide: true, Component: StepUsage },
+  { id: 'preferences', title: 'Preferences', shortTitle: 'Preferences', Component: StepPreferences },
 ]

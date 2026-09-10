@@ -60,7 +60,7 @@ export function encodeInputs(inputs: SystemInputs): string {
   if (inputs.pshOverride !== undefined) params.set('psh', String(inputs.pshOverride))
   params.set('a', String(inputs.autonomyDays))
   params.set('p', inputs.panelId)
-  params.set('b', inputs.batteryModuleId)
+  if (inputs.batteryModuleId !== undefined) params.set('b', inputs.batteryModuleId)
 
   if (inputs.load.mode === 'bill') {
     params.set('l', 'b')
@@ -70,7 +70,15 @@ export function encodeInputs(inputs: SystemInputs): string {
     params.set('l', 'a')
     params.set(
       'ap',
-      inputs.load.entries.map((e) => `${e.applianceId}:${e.quantity}:${e.hoursPerDay}:${e.usageWindow}`).join(','),
+      inputs.load.entries
+        .map((e) => {
+          // The watts segment is appended only when the user corrected the
+          // catalogue, so untouched lists keep the short four-part form that
+          // links shared before this field existed already use.
+          const base = `${e.applianceId}:${e.quantity}:${e.hoursPerDay}:${e.usageWindow}`
+          return e.watts === undefined ? base : `${base}:${e.watts}`
+        })
+        .join(','),
     )
   }
 
@@ -82,12 +90,23 @@ function decodeEntries(raw: string | null): ApplianceEntry[] {
   return raw
     .split(',')
     .map((chunk): ApplianceEntry | null => {
-      const [applianceId, quantity, hours, window] = chunk.split(':')
+      const [applianceId, quantity, hours, window, watts] = chunk.split(':')
       if (!applianceId || !findAppliance(applianceId)) return null
       const q = numNonNegative(quantity ?? null)
       const h = numNonNegative(hours ?? null)
       if (q === undefined || h === undefined || !window || !isUsageWindow(window)) return null
-      return { applianceId, quantity: q, hoursPerDay: h, usageWindow: window }
+
+      const entry: ApplianceEntry = { applianceId, quantity: q, hoursPerDay: h, usageWindow: window }
+      // A missing fifth segment is the normal case: the row never overrode the
+      // catalogue. A present but unreadable one is a corrupt row, and is
+      // dropped like any other, rather than silently reverting to a wattage
+      // the sender did not intend.
+      if (watts !== undefined) {
+        const w = numNonNegative(watts)
+        if (w === undefined) return null
+        entry.watts = w
+      }
+      return entry
     })
     .filter((entry): entry is ApplianceEntry => entry !== null)
 }
@@ -124,7 +143,9 @@ export function decodeInputs(query: string): SystemInputs | null {
     pshOverride: psh,
     autonomyDays: autonomy ?? defaults.autonomyDays,
     panelId: panelId && findPanel(panelId) ? panelId : defaults.panelId,
-    batteryModuleId: batteryModuleId && findBatteryModule(batteryModuleId) ? batteryModuleId : defaults.batteryModuleId,
+    // Absent, or naming a module that is not in the catalogue, both mean
+    // "let the engine choose" rather than "fall back to some fixed module".
+    batteryModuleId: batteryModuleId && findBatteryModule(batteryModuleId) ? batteryModuleId : undefined,
     load,
   }
 }

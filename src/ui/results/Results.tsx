@@ -16,11 +16,15 @@ interface ResultsProps {
 }
 
 export function Results({ design, state, dispatch }: ResultsProps) {
-  const { array, inverter, battery, controller, busVoltage } = design
+  const { array, inverter, battery, batteryModule, controller, busVoltage } = design
+  const batteryBoxes =
+    battery ? battery.modulesInSeries.value * battery.modulesInParallel.value : 0
 
   return (
     <div className={styles.layout}>
-      <InputSidebar state={state} dispatch={dispatch} />
+      {/* The design first, the inputs after. On a phone the two stack, and a
+          reader who has just pressed "See my system" should land on the system,
+          not on a second pass through their own answers. */}
       <div className={styles.main}>
         <h2 className={styles.heading}>Your system</h2>
 
@@ -42,6 +46,9 @@ export function Results({ design, state, dispatch }: ResultsProps) {
                 <>
                   A {formatFigure(busVoltage.value)} V bank, which is the <Term id="bus-voltage" /> this size of
                   system runs at.
+                  {batteryModule && batteryBoxes > 0 && (
+                    <> That is {formatFigure(batteryBoxes)} x {batteryModule.name}.</>
+                  )}
                 </>
               }
               field={battery.nominalKwh}
@@ -87,6 +94,8 @@ export function Results({ design, state, dispatch }: ResultsProps) {
         <Warnings warnings={design.warnings} />
         <ShowTheMaths design={design} />
       </div>
+
+      <InputSidebar state={state} dispatch={dispatch} chosenBatteryName={batteryModule?.name} />
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import { findBatteryModule } from '../data/components'
 import { DEFAULTS } from './defaults'
 import { round2 } from './sized'
 import type { SystemDesign, Warning } from './types'
@@ -42,7 +41,7 @@ export function validateDesign(design: SystemDesign): Warning[] {
       }
     }
 
-    const module = findBatteryModule(design.inputs.batteryModuleId)
+    const module = design.batteryModule
     if (module) {
       // The bank must physically reach the system voltage. modulesInSeries is a
       // rounded integer, so a module whose nominal voltage does not divide the bus

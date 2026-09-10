@@ -4,11 +4,15 @@ import { DISTRICTS } from '../../data/psh'
 import type { SystemType } from '../../engine/types'
 import type { Action, AppState } from '../../state/appState'
 import { formatFigure } from '../format'
+import { Button } from '../primitives/Button'
 import { ChoiceList } from '../primitives/ChoiceList'
 import { NumberField } from '../primitives/NumberField'
 import { SelectField } from '../primitives/SelectField'
 import { ApplianceEditor } from '../wizard/ApplianceEditor'
 import styles from './InputSidebar.module.css'
+
+/** Sentinel for the select, which can only carry strings. */
+const AUTOMATIC = 'auto'
 
 const TYPES: { value: SystemType; label: string }[] = [
   { value: 'off-grid', label: 'No mains electricity' },
@@ -16,7 +20,14 @@ const TYPES: { value: SystemType; label: string }[] = [
   { value: 'grid-tied', label: 'Reliable mains' },
 ]
 
-export function InputSidebar({ state, dispatch }: { state: AppState; dispatch: Dispatch<Action> }) {
+interface InputSidebarProps {
+  state: AppState
+  dispatch: Dispatch<Action>
+  /** The module the engine picked, shown while the choice is left to it. */
+  chosenBatteryName?: string
+}
+
+export function InputSidebar({ state, dispatch, chosenBatteryName }: InputSidebarProps) {
   const { inputs } = state
 
   return (
@@ -47,13 +58,9 @@ export function InputSidebar({ state, dispatch }: { state: AppState; dispatch: D
             Using your own figure of {formatFigure(inputs.pshOverride)} sun hours a day — District will not
             change this.
           </p>
-          <button
-            type="button"
-            className={styles.secondary}
-            onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}
-          >
+          <Button size="sm" onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}>
             Use the district figure instead
-          </button>
+          </Button>
         </div>
       )}
 
@@ -111,9 +118,19 @@ export function InputSidebar({ state, dispatch }: { state: AppState; dispatch: D
           id="sidebar-battery"
           label="Battery"
           size="compact"
-          value={inputs.batteryModuleId}
-          options={BATTERY_MODULES.map((module) => ({ value: module.id, label: module.name }))}
-          onChange={(batteryModuleId) => dispatch({ type: 'setBatteryModule', batteryModuleId })}
+          value={inputs.batteryModuleId ?? AUTOMATIC}
+          hint={
+            inputs.batteryModuleId === undefined && chosenBatteryName
+              ? `Using ${chosenBatteryName}, which suits this system voltage.`
+              : undefined
+          }
+          options={[
+            { value: AUTOMATIC, label: 'Chosen to suit the system' },
+            ...BATTERY_MODULES.map((module) => ({ value: module.id, label: module.name })),
+          ]}
+          onChange={(value) =>
+            dispatch({ type: 'setBatteryModule', batteryModuleId: value === AUTOMATIC ? undefined : value })
+          }
         />
       )}
     </aside>

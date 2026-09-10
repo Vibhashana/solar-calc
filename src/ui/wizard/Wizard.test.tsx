@@ -23,11 +23,11 @@ describe('Wizard', () => {
     expect(screen.queryByRole('button', { name: /Back/ })).toBeNull()
   })
 
-  it('reports progress on every screen', () => {
+  it('reports progress and names the current screen', () => {
     render(<Harness />)
-    expect(screen.getByText('Step 1 of 4')).toBeDefined()
+    expect(screen.getByText(/Step 1 of 4 . System/)).toBeDefined()
     clickButton(/Next/)
-    expect(screen.getByText('Step 2 of 4')).toBeDefined()
+    expect(screen.getByText(/Step 2 of 4 . Location/)).toBeDefined()
   })
 
   it('walks forward to results and back again', () => {

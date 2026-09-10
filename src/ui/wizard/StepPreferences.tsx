@@ -1,4 +1,4 @@
-import { BATTERY_MODULES, PANELS } from '../../data/components'
+import { PANELS } from '../../data/components'
 import { NotSure } from '../primitives/NotSure'
 import { NumberField } from '../primitives/NumberField'
 import { SelectField } from '../primitives/SelectField'
@@ -49,22 +49,12 @@ export function StepPreferences({ state, dispatch }: StepProps) {
         panels produce nearly the same. Pick whatever your local supplier actually stocks.
       </NotSure>
 
-      {hasBattery && (
-        <>
-          <SelectField
-            id="battery-module"
-            label="What battery can you buy locally?"
-            value={state.inputs.batteryModuleId}
-            hint="Batteries come in a few standard voltages. Pick what your supplier sells; the tool works out how many you need."
-            options={BATTERY_MODULES.map((module) => ({ value: module.id, label: module.name }))}
-            onChange={(batteryModuleId) => dispatch({ type: 'setBatteryModule', batteryModuleId })}
-          />
-          <NotSure>
-            These are <Term id="lifepo4" /> battery modules, sold in fixed sizes. Any of them works — the tool
-            wires as many together as your system needs. Just pick the one you can actually buy.
-          </NotSure>
-        </>
-      )}
+      {/* No battery question here on purpose. Which module a bank is built
+          from has to match the system voltage, and the system voltage is
+          derived from the inverter and array rather than asked for — so the
+          tool already knows which modules are valid, and the choice changes
+          only how many boxes the same capacity arrives in. It is offered on
+          the results screen, next to a real design, for anyone shopping. */}
     </>
   )
 }

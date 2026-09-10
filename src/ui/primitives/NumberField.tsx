@@ -10,7 +10,9 @@ interface NumberFieldProps {
   step?: number
   unit?: string
   hint?: ReactNode
-  size?: 'full' | 'compact'
+  size?: 'full' | 'compact' | 'row'
+  /** Rendered directly under the input, e.g. a reset control for an override. */
+  after?: ReactNode
   clampNote?: (clampedTo: number, bound: 'min' | 'max') => string
   onChange: (value: number) => void
 }
@@ -22,7 +24,9 @@ function defaultClampNote(clampedTo: number, bound: 'min' | 'max', unit?: string
     : `That is lower than this tool plans for, so it is using ${shown}.`
 }
 
-export function NumberField({ id, label, value, min, max, step, unit, hint, size = 'full', clampNote, onChange }: NumberFieldProps) {
+const SIZES = { full: styles.field, compact: styles.fieldCompact, row: styles.fieldRow }
+
+export function NumberField({ id, label, value, min, max, step, unit, hint, size = 'full', after, clampNote, onChange }: NumberFieldProps) {
   const [note, setNote] = useState<string | null>(null)
   // Tracks the value this field itself last reported via onChange, so we can
   // tell "the parent echoed my own clamp back" (value === lastReported.current,
@@ -59,7 +63,7 @@ export function NumberField({ id, label, value, min, max, step, unit, hint, size
   }
 
   return (
-    <div className={size === 'compact' ? styles.fieldCompact : styles.field}>
+    <div className={SIZES[size]}>
       <label className={styles.label} htmlFor={id}>
         {label}
       </label>
@@ -78,6 +82,7 @@ export function NumberField({ id, label, value, min, max, step, unit, hint, size
         />
         {unit && <span className={styles.unit}>{unit}</span>}
       </span>
+      {after}
       {note && (
         <p role="status" className={styles.note}>
           {note}

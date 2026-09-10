@@ -8,6 +8,8 @@
 }
 
 .list {
+  display: grid;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -15,30 +17,38 @@
 
 .info,
 .caution {
+  display: grid;
+  gap: var(--space-1);
   max-width: var(--measure);
-  margin-bottom: var(--space-2);
   padding: var(--space-3);
-  border-left: 3px solid var(--color-line);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 
+/* The tint and the tag carry the severity. The message itself stays in ink:
+   a caution is the text most worth reading, and a whole paragraph set in the
+   accent colour is the hardest text on the page to read. */
 .caution {
-  border-left-color: var(--color-caution);
+  border-color: var(--color-caution-line);
   background: var(--color-caution-ground);
-  color: var(--color-caution);
 }
 
+/* A pill, not a coloured edge: it reads as a label on the message rather than
+   as decoration, and it keeps its meaning when the colour does not land. */
 .tag {
-  display: block;
-  margin-bottom: var(--space-1);
+  justify-self: start;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-sunken);
   color: var(--color-ink-quiet);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-tiny);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .caution .tag {
-  color: var(--color-caution);
+  background: var(--color-caution);
+  color: var(--color-caution-ground);
 }

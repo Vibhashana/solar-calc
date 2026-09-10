@@ -35,6 +35,12 @@ export interface ApplianceEntry {
   quantity: number
   hoursPerDay: number
   usageWindow: UsageWindow
+  /**
+   * Running watts for this row, when the user has corrected the catalogue
+   * figure. Undefined means "whatever the catalogue says", so a later change
+   * to the catalogue reaches every row the user never touched.
+   */
+  watts?: number
 }
 
 export type LoadInput =
@@ -75,7 +81,14 @@ export interface SystemInputs {
   load: LoadInput
   autonomyDays: number
   panelId: string
-  batteryModuleId: string
+  /**
+   * Which battery module the design is packaged into. Undefined means the
+   * engine picks one to suit the system voltage, which is the normal case:
+   * the choice does not change how much battery is needed, only how many
+   * boxes it arrives in, and the system voltage it has to match is itself
+   * derived rather than asked for.
+   */
+  batteryModuleId?: string
   diversityFactor: number
   derate: DerateFactors
   /** Coldest expected morning temperature, for Voc checking. */
@@ -134,6 +147,8 @@ export interface SystemDesign {
   /** Null for grid-tied systems, which have no battery bus. */
   busVoltage: Sized<BusVoltage> | null
   battery: BatterySpec | null
+  /** The module the battery figure is packaged into. Null when there is none. */
+  batteryModule: BatteryModuleSpec | null
   controller: ControllerSpec | null
   warnings: Warning[]
 }

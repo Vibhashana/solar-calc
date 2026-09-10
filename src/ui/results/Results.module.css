@@ -1,9 +1,9 @@
 .layout {
   display: grid;
   gap: var(--space-4);
-  max-width: 68rem;
+  max-width: var(--measure-wide);
   margin: 0 auto;
-  padding: var(--space-4) var(--space-3) var(--space-5);
+  padding: var(--space-5) var(--space-3) var(--space-6);
 }
 
 .main {
@@ -12,7 +12,8 @@
 
 @media (min-width: 60rem) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: var(--space-5);
+    grid-template-columns: minmax(0, 1fr) 21rem;
   }
 
   .main {
@@ -36,6 +37,8 @@
   gap: var(--space-3);
 }
 
+/* Two, fixed, rather than auto-fit. A design has three or four cards, and
+   auto-fit leaves the fourth stranded alone on a row at some widths. */
 @media (min-width: 44rem) {
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));

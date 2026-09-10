@@ -1,6 +1,7 @@
 import { DISTRICTS, PSH_SOURCE, findDistrict } from '../../data/psh'
 import { resolveDesignPsh } from '../../engine/solar'
 import { formatFigure } from '../format'
+import { Button } from '../primitives/Button'
 import { NotSure } from '../primitives/NotSure'
 import { NumberField } from '../primitives/NumberField'
 import { SelectField } from '../primitives/SelectField'
@@ -44,13 +45,9 @@ export function StepLocation({ state, dispatch }: StepProps) {
                 onChange={(psh) => dispatch({ type: 'setPshOverride', psh })}
               />
               {state.inputs.pshOverride !== undefined && (
-                <button
-                  type="button"
-                  className={styles.secondary}
-                  onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}
-                >
+                <Button size="sm" onClick={() => dispatch({ type: 'setPshOverride', psh: undefined })}>
                   Use the district figure instead
-                </button>
+                </Button>
               )}
             </div>
           </details>

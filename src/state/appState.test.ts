@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { APPLIANCES } from '../data/appliances'
 import { defaultInputs } from '../engine/defaults'
 import { initialState, reducer, type AppState } from './appState'
 
@@ -103,6 +104,58 @@ describe('the load fork', () => {
       mode: 'appliances',
       entries: [{ applianceId: 'led-bulb', quantity: 1, hoursPerDay: 5, usageWindow: 'night' }],
     })
+  })
+
+  it('adds a row with no id, seeded from the first appliance in the catalogue', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance' })
+    const entries = state.inputs.load.mode === 'appliances' ? state.inputs.load.entries : []
+    expect(entries).toHaveLength(1)
+    expect(entries[0]?.applianceId).toBe(APPLIANCES[0]?.id)
+    expect(entries[0]?.quantity).toBe(1)
+  })
+
+  it('adds a fresh row with no wattage of its own, so the catalogue figure shows', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance', applianceId: 'ceiling-fan' })
+    const entries = state.inputs.load.mode === 'appliances' ? state.inputs.load.entries : []
+    expect(entries[0]?.watts).toBeUndefined()
+  })
+
+  it('reseeds hours, window and wattage when a row changes appliance, keeping quantity', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance', applianceId: 'led-bulb' })
+    state = reducer(state, { type: 'updateAppliance', index: 0, patch: { quantity: 7, watts: 3 } })
+    state = reducer(state, { type: 'setApplianceType', index: 0, applianceId: 'electric-kettle' })
+    expect(state.inputs.load).toEqual({
+      mode: 'appliances',
+      entries: [{ applianceId: 'electric-kettle', quantity: 7, hoursPerDay: 0.5, usageWindow: 'both', watts: undefined }],
+    })
+  })
+
+  it('leaves a row alone when it is set to the appliance it already holds', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance', applianceId: 'led-bulb' })
+    state = reducer(state, { type: 'updateAppliance', index: 0, patch: { watts: 3 } })
+    const before = state.inputs.load
+    state = reducer(state, { type: 'setApplianceType', index: 0, applianceId: 'led-bulb' })
+    expect(state.inputs.load).toBe(before)
+  })
+
+  it('ignores a type change to an unknown appliance', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance', applianceId: 'led-bulb' })
+    const before = state.inputs.load
+    state = reducer(state, { type: 'setApplianceType', index: 0, applianceId: 'flux-capacitor' })
+    expect(state.inputs.load).toBe(before)
+  })
+
+  it('records a corrected wattage on a row', () => {
+    let state = reducer(wizardStart(), { type: 'setLoadMode', mode: 'appliances' })
+    state = reducer(state, { type: 'addAppliance', applianceId: 'led-bulb' })
+    state = reducer(state, { type: 'updateAppliance', index: 0, patch: { watts: 12 } })
+    const entries = state.inputs.load.mode === 'appliances' ? state.inputs.load.entries : []
+    expect(entries[0]?.watts).toBe(12)
   })
 
   it('ignores an unknown appliance rather than adding a broken row', () => {

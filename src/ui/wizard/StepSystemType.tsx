@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '../primitives/Button'
 import { ChoiceList } from '../primitives/ChoiceList'
 import { NotSure } from '../primitives/NotSure'
 import type { SystemType } from '../../engine/types'
@@ -47,33 +48,33 @@ export function StepSystemType({ state, dispatch }: StepProps) {
         {asking === 'mains' && (
           <div className={styles.branch}>
             <p>Do you have mains electricity at this place?</p>
-            <button type="button" className={styles.secondary} onClick={() => setAsking('cuts')}>
+            <Button size="sm" onClick={() => setAsking('cuts')}>
               Yes, I have mains
-            </button>
-            <button type="button" className={styles.secondary} onClick={() => choose('off-grid')}>
+            </Button>
+            <Button size="sm" onClick={() => choose('off-grid')}>
               No, there is no mains
-            </button>
+            </Button>
           </div>
         )}
 
         {asking === 'cuts' && (
           <div className={styles.branch}>
             <p>Does the power cut often enough to bother you?</p>
-            <button type="button" className={styles.secondary} onClick={() => choose('hybrid')}>
+            <Button size="sm" onClick={() => choose('hybrid')}>
               Yes, it cuts often
-            </button>
-            <button type="button" className={styles.secondary} onClick={() => choose('grid-tied')}>
+            </Button>
+            <Button size="sm" onClick={() => choose('grid-tied')}>
               No, it is reliable
-            </button>
+            </Button>
           </div>
         )}
 
         {asking === 'answered' && (
           <div className={styles.branch}>
             <p>Answered: {chosenLabel}</p>
-            <button type="button" className={styles.secondary} onClick={() => setAsking('mains')}>
+            <Button size="sm" onClick={() => setAsking('mains')}>
               Answer these again
-            </button>
+            </Button>
           </div>
         )}
       </NotSure>

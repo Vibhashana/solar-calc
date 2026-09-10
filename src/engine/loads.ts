@@ -17,7 +17,11 @@ function accumulate(load: Extract<LoadInput, { mode: 'appliances' }>, catalog: A
     const appliance = catalog.find((a) => a.id === entry.applianceId)
     if (!appliance) continue
 
-    const wh = appliance.watts * entry.quantity * entry.hoursPerDay
+    // ?? not ||: a user who says an appliance draws 0 W means it, and the
+    // catalogue figure must not creep back in behind that answer.
+    const watts = entry.watts ?? appliance.watts
+
+    const wh = watts * entry.quantity * entry.hoursPerDay
     if (entry.usageWindow === 'day') acc.dayWh += wh
     else if (entry.usageWindow === 'night') acc.nightWh += wh
     else {
@@ -25,8 +29,8 @@ function accumulate(load: Extract<LoadInput, { mode: 'appliances' }>, catalog: A
       acc.nightWh += wh / 2
     }
 
-    acc.connectedW += appliance.watts * entry.quantity
-    const extraSurge = appliance.watts * (appliance.surgeFactor - 1)
+    acc.connectedW += watts * entry.quantity
+    const extraSurge = watts * (appliance.surgeFactor - 1)
     if (extraSurge > acc.largestExtraSurgeW) acc.largestExtraSurgeW = extraSurge
   }
 

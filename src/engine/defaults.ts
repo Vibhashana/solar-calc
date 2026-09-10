@@ -30,7 +30,6 @@ export const DEFAULTS = {
   /** Grid-tied DC:AC overbuild. */
   gridTiedDcAcRatio: 1.15,
   defaultPanelId: 'generic-550',
-  defaultBatteryModuleId: 'lfp-12v-100ah',
   /** Coolest morning in the Sri Lankan lowlands; hill country is colder. */
   minAmbientC: 18,
 } as const
@@ -50,7 +49,6 @@ export function defaultInputs(systemType: SystemType, districtId: string): Syste
     load: { mode: 'bill', monthlyKwh: 200, nightFraction: DEFAULTS.billNightFraction },
     autonomyDays: DEFAULTS.autonomyDays[systemType],
     panelId: DEFAULTS.defaultPanelId,
-    batteryModuleId: DEFAULTS.defaultBatteryModuleId,
     diversityFactor: DEFAULTS.diversityFactor,
     derate: { ...DERATE_DEFAULTS },
     minAmbientC: DEFAULTS.minAmbientC,
